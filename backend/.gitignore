@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.env
+.env
+venv/
+ENV/
+*.egg-info/
+*.db
+*.sqlite3
+
+# FastAPI
+instance/
+*.log
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Pipenv
+Pipfile.lock
+
+# Pytest
+.cache/
+
+# Migrations
+db.sqlite3
+migrations/
+
+# Others
+*.bak
+*.swp
+*.tmp
