@@ -1,0 +1,36 @@
+# ML Directory .gitignore
+
+# Large model files and embeddings (too large for git)
+embeddings/*.npy
+embeddings/*.index
+embeddings/*.json
+embeddings/faiss/
+
+# Processed data (can be regenerated)
+processed/chunks/*.jsonl
+processed/chunks/*.json
+
+# Large datasets (store separately or use LFS)
+datasets/
+data/raw/*.pdf
+data/cleaned/*.txt
+
+# Model weights and checkpoints
+models/base/
+models/lora/
+models/merged/
+models/**/*.bin
+models/**/*.safetensors
+models/**/*.pkl
+
+# Notebook checkpoints
+notebooks/.ipynb_checkpoints/
+notebooks/**/.ipynb_checkpoints/
+
+# Python cache in scripts
+scripts/__pycache__/
+scripts/**/__pycache__/
+
+# Keep structure with .gitkeep files
+!*/.gitkeep
+!**/.gitkeep
