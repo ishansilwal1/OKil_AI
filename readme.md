@@ -175,13 +175,7 @@ Currently available for development testing:
 - [ ] Citation tracking and verification
 - [ ] Multi-jurisdiction support expansion
 
-## 🤝 Development & Contributing
 
-This is an active development project. Current contributors can:
-- Test the ML pipeline with new legal documents
-- Improve search algorithms and performance
-- Suggest features for the upcoming web interface
-- Report issues with the current command-line system
 
 *Web interface development will begin after core ML pipeline is fully validated.*
 
