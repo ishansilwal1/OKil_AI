@@ -334,38 +334,38 @@
   .header {
     padding: 16px 20px;
   }
-  
+
   .logo-text {
     font-size: 18px;
   }
-  
+
   .main-content {
     padding: 80px 16px 20px;
   }
-  
+
   .login-card {
     flex-direction: column;
     max-width: 400px;
     min-height: auto;
   }
-  
+
   .welcome-section {
     padding: 40px 30px;
     min-height: 200px;
   }
-  
+
   .welcome-title {
     font-size: 24px;
   }
-  
+
   .welcome-subtitle {
     font-size: 13px;
   }
-  
+
   .form-section {
     padding: 40px 30px;
   }
-  
+
   .form-container {
     max-width: 100%;
   }
@@ -375,15 +375,15 @@
   .main-content {
     padding: 70px 12px 16px;
   }
-  
+
   .login-card {
     max-width: 100%;
   }
-  
+
   .welcome-section {
     padding: 30px 20px;
   }
-  
+
   .form-section {
     padding: 30px 20px;
   }
@@ -391,16 +391,16 @@
   .welcome-title {
     font-size: 20px;
   }
-  
+
   .form-input {
     padding: 10px 12px 10px 40px;
     font-size: 13px;
   }
-  
+
   .input-icon {
     left: 12px;
   }
-  
+
   .login-button {
     padding: 12px;
     font-size: 13px;
