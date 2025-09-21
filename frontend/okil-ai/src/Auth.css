@@ -1,4 +1,4 @@
-/* Login.css */
+/* Auth.css */
 
 * {
   margin: 0;
@@ -6,7 +6,7 @@
   box-sizing: border-box;
 }
 
-.login-container {
+.auth-container {
   min-height: 100vh;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
@@ -18,7 +18,7 @@
   flex-direction: column;
 }
 
-.login-container::before {
+.auth-container::before {
   content: '';
   position: absolute;
   top: 0;
@@ -53,9 +53,9 @@
 }
 
 .logo-text {
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 700;
-  color: #20B2AA;
+  color: #0D9488;
   letter-spacing: 1px;
 }
 
@@ -70,8 +70,8 @@
   z-index: 5;
 }
 
-/* Login Card */
-.login-card {
+/* Auth Card */
+.auth-card {
   width: 100%;
   max-width: 800px;
   background: #FFFFFF;
@@ -101,11 +101,11 @@
 .welcome-title {
   font-size: 32px;
   font-weight: 700;
-  color: #20B2AA;
+  color: #0D9488;
   margin-bottom: 16px;
   line-height: 1.2;
   letter-spacing: -0.5px;
-  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .welcome-subtitle {
@@ -168,8 +168,8 @@
   color: #374151;
 }
 
-/* Login Form */
-.login-form {
+/* Auth Form (Login) */
+.auth-form {
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -202,7 +202,7 @@
 
 .form-input {
   width: 100%;
-  padding: 12px 50px 12px 44px;
+  padding: 12px 14px 12px 44px;
   border: 1px solid #D1D5DB;
   border-radius: 6px;
   font-size: 14px;
@@ -228,14 +228,9 @@
   background: none;
   border: none;
   cursor: pointer;
-  padding: 6px;
+  padding: 4px;
   border-radius: 4px;
   transition: background-color 0.2s ease;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
 }
 
 .password-toggle:hover {
@@ -300,11 +295,11 @@
   font-size: 13px;
   color: #3B4BA5;
   text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s ease;
   background: none;
   border: none;
+  font-weight: 500;
   cursor: pointer;
+  transition: color 0.2s ease;
 }
 
 .forgot-password:hover {
@@ -312,8 +307,8 @@
   text-decoration: underline;
 }
 
-/* Login Button */
-.login-button {
+/* Auth Button (Login) */
+.auth-button {
   width: 100%;
   padding: 14px;
   background: #3B4BA5;
@@ -327,62 +322,65 @@
   margin-top: 8px;
 }
 
-.login-button:hover {
+.auth-button:hover {
   background: #2E3A7C;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(59, 75, 165, 0.3);
 }
 
-.login-button:active {
+.auth-button:active {
   transform: translateY(0);
   box-shadow: 0 2px 6px rgba(59, 75, 165, 0.3);
 }
 
-/* Signup Form Styles */
-.signup-form {
+/* Sign Up Section */
+.signup-section {
   display: flex;
   flex-direction: column;
   gap: 24px;
-  padding: 20px 0;
+  align-items: center;
+  text-align: center;
 }
 
 .signup-title {
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 24px;
+  font-weight: 700;
   color: #111827;
-  margin: 0 0 16px 0;
+  margin: 0;
   text-align: left;
+  width: 100%;
 }
 
-.signup-buttons {
+.signup-options {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  width: 100%;
 }
 
-.signup-option-button {
+.signup-button {
   width: 100%;
-  padding: 14px 16px;
+  padding: 16px 24px;
   background: #3B4BA5;
   color: #FFFFFF;
   border: none;
-  border-radius: 6px;
-  font-size: 14px;
+  border-radius: 8px;
+  font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: center;
 }
 
-.signup-option-button:hover {
+.signup-button:hover {
   background: #2E3A7C;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(59, 75, 165, 0.3);
+  box-shadow: 0 6px 16px rgba(59, 75, 165, 0.3);
 }
 
-.signup-option-button:active {
+.signup-button:active {
   transform: translateY(0);
-  box-shadow: 0 2px 6px rgba(59, 75, 165, 0.3);
+  box-shadow: 0 3px 8px rgba(59, 75, 165, 0.3);
 }
 
 /* Responsive Design */
@@ -392,14 +390,14 @@
   }
 
   .logo-text {
-    font-size: 18px;
+    font-size: 20px;
   }
 
   .main-content {
     padding: 80px 16px 20px;
   }
 
-  .login-card {
+  .auth-card {
     flex-direction: column;
     max-width: 400px;
     min-height: auto;
@@ -425,6 +423,15 @@
   .form-container {
     max-width: 100%;
   }
+
+  .signup-title {
+    font-size: 20px;
+  }
+
+  .signup-button {
+    padding: 14px 20px;
+    font-size: 15px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -432,7 +439,7 @@
     padding: 70px 12px 16px;
   }
 
-  .login-card {
+  .auth-card {
     max-width: 100%;
   }
 
@@ -457,8 +464,12 @@
     left: 12px;
   }
 
-  .login-button {
+  .auth-button, .signup-button {
     padding: 12px;
     font-size: 13px;
+  }
+
+  .signup-title {
+    font-size: 18px;
   }
 }

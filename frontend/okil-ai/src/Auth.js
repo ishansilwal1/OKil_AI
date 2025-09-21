@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
-import './Login.css';
+import './Auth.css';
 
-const Login = () => {
+const Auth = () => {
+  const [activeTab, setActiveTab] = useState('login');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     rememberMe: false
   });
-
-  const [activeTab, setActiveTab] = useState('login');
-  const [showPassword, setShowPassword] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -19,14 +17,24 @@ const Login = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleLogin = (e) => {
     e.preventDefault();
     console.log('Login attempt:', formData);
   };
 
+  const handleSignUpAsUser = () => {
+    console.log('Sign up as User');
+    // Add navigation logic here
+  };
+
+  const handleSignUpAsLawyer = () => {
+    console.log('Sign up as Lawyer');
+    // Add navigation logic here
+  };
+
   return (
     <div 
-      className="login-container"
+      className="auth-container"
       style={{
         backgroundImage: `url(${process.env.PUBLIC_URL}/Background.png)`,
         backgroundSize: 'cover',
@@ -34,7 +42,7 @@ const Login = () => {
         backgroundRepeat: 'no-repeat'
       }}
     >
-      {/* Header with Logo */}
+      {/* Header */}
       <div className="header">
         <div className="logo-container">
           <img src={`${process.env.PUBLIC_URL}/logo.png`} alt="OKIL AI" className="logo" />
@@ -42,20 +50,21 @@ const Login = () => {
         </div>
       </div>
 
-      {/* Main Content - Centered Card */}
+      {/* Main Content */}
       <div className="main-content">
-        <div className="login-card">
-          {/* Left Side - Welcome Section */}
+        {/* Auth Card */}
+        <div className="auth-card">
+          {/* Welcome Section (Left Side of Card) */}
           <div className="welcome-section">
             <div className="welcome-content">
-              <h1 className="welcome-title">Welcome To OKIL AI</h1>
+              <h1 className="welcome-title">Welcome OKIL AI</h1>
               <p className="welcome-subtitle">
                 Sign in to your OKIL AI account. Your trusted partner in legal consultation.
               </p>
             </div>
           </div>
 
-          {/* Right Side - Form Section */}
+          {/* Form Section (Right Side of Card) */}
           <div className="form-section">
             <div className="form-container">
               {/* Tab Navigation */}
@@ -74,10 +83,9 @@ const Login = () => {
                 </button>
               </div>
 
-              {/* Conditional Content based on active tab */}
-              {activeTab === 'login' ? (
-                /* Login Form */
-                <form onSubmit={handleSubmit} className="login-form">
+              {/* Login Form */}
+              {activeTab === 'login' && (
+                <form onSubmit={handleLogin} className="auth-form">
                   <div className="form-group">
                     <label htmlFor="email" className="form-label">
                       Email Address / Username
@@ -115,7 +123,7 @@ const Login = () => {
                         </svg>
                       </span>
                       <input
-                        type={showPassword ? "text" : "password"}
+                        type="password"
                         id="password"
                         name="password"
                         value={formData.password}
@@ -124,27 +132,11 @@ const Login = () => {
                         className="form-input"
                         required
                       />
-                      <button
-                        type="button"
-                        className="password-toggle"
-                        onClick={() => {
-                          console.log('Toggle clicked! Current state:', showPassword);
-                          setShowPassword(!showPassword);
-                        }}
-                      >
-                        {showPassword ? (
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            <path d="M2 2L22 22" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
-                        ) : (
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            <circle cx="12" cy="12" r="3" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
-                        )}
+                      <button type="button" className="password-toggle">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="#9CA3AF" strokeWidth="2"/>
+                          <circle cx="12" cy="12" r="3" stroke="#9CA3AF" strokeWidth="2"/>
+                        </svg>
                       </button>
                     </div>
                   </div>
@@ -166,26 +158,28 @@ const Login = () => {
                     </button>
                   </div>
 
-                  <button type="submit" className="login-button">
+                  <button type="submit" className="auth-button">
                     Login to Account
                   </button>
                 </form>
-              ) : (
-                /* Register/Signup Section */
-                <div className="signup-form">
+              )}
+
+              {/* Sign Up Options */}
+              {activeTab === 'register' && (
+                <div className="signup-section">
                   <h2 className="signup-title">Sign Up</h2>
-                  <div className="signup-buttons">
+                  
+                  <div className="signup-options">
                     <button 
-                      type="button" 
-                      className="signup-option-button"
-                      onClick={() => console.log('Sign up as User clicked')}
+                      className="signup-button user-button"
+                      onClick={handleSignUpAsUser}
                     >
                       Sign Up as User
                     </button>
+                    
                     <button 
-                      type="button" 
-                      className="signup-option-button"
-                      onClick={() => console.log('Sign up as Lawyer clicked')}
+                      className="signup-button lawyer-button"
+                      onClick={handleSignUpAsLawyer}
                     >
                       Sign Up as Lawyer
                     </button>
@@ -200,4 +194,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Auth;
