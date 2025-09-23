@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from "react";
 import './Login.css';
 
 const Login = () => {
@@ -10,6 +10,25 @@ const Login = () => {
 
   const [activeTab, setActiveTab] = useState('login');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [currentView, setCurrentView] = useState('main');
+  
+  const [signupData, setSignupData] = useState({
+    name: '',
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  });
+
+  const [lawyerSignupData, setLawyerSignupData] = useState({
+    name: '',
+    username: '',
+    barCouncilNumber: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  });
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -19,181 +38,495 @@ const Login = () => {
     }));
   };
 
+  const handleSignupInputChange = (e) => {
+    const { name, value } = e.target;
+    setSignupData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleLawyerSignupInputChange = (e) => {
+    const { name, value } = e.target;
+    setLawyerSignupData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log('Login attempt:', formData);
   };
 
+  const handleSignupSubmit = (e) => {
+    e.preventDefault();
+    console.log('Signup attempt:', signupData);
+  };
+
+  const handleLawyerSignupSubmit = (e) => {
+    e.preventDefault();
+    console.log('Lawyer signup attempt:', lawyerSignupData);
+  };
+
   return (
-    <div 
-      className="login-container"
-      style={{
-        backgroundImage: `url(${process.env.PUBLIC_URL}/Background.png)`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
-      }}
-    >
-      {/* Header with Logo */}
+    <div className="login-page" style={{
+      backgroundImage: `url('/Background.png')`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+      backgroundAttachment: 'fixed'
+    }}>
       <div className="header">
         <div className="logo-container">
-          <img src={`${process.env.PUBLIC_URL}/logo.png`} alt="OKIL AI" className="logo" />
+          <img src="/logo.png" alt="OKIL AI" className="logo" />
           <span className="logo-text">OKIL AI</span>
         </div>
       </div>
 
-      {/* Main Content - Centered Card */}
       <div className="main-content">
         <div className="login-card">
-          {/* Left Side - Welcome Section */}
-          <div className="welcome-section">
-            <div className="welcome-content">
-              <h1 className="welcome-title">Welcome To OKIL AI</h1>
-              <p className="welcome-subtitle">
-                Sign in to your OKIL AI account. Your trusted partner in legal consultation.
-              </p>
-            </div>
-          </div>
-
-          {/* Right Side - Form Section */}
-          <div className="form-section">
-            <div className="form-container">
-              {/* Tab Navigation */}
-              <div className="tab-navigation">
-                <button 
-                  className={`tab ${activeTab === 'login' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('login')}
-                >
-                  Login
-                </button>
-                <button 
-                  className={`tab ${activeTab === 'register' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('register')}
-                >
-                  Register
-                </button>
+          {currentView === 'signupUser' && (
+            <>
+              <div className="welcome-section signup-welcome">
+                <div className="welcome-content">
+                  <h1 className="signup-welcome-title">Sign up as User</h1>
+                  <p className="signup-welcome-subtitle">
+                    Sign up to create user account, get started for legal consultation.
+                  </p>
+                </div>
               </div>
 
-              {/* Conditional Content based on active tab */}
-              {activeTab === 'login' ? (
-                /* Login Form */
-                <form onSubmit={handleSubmit} className="login-form">
-                  <div className="form-group">
-                    <label htmlFor="email" className="form-label">
-                      Email Address / Username
-                    </label>
-                    <div className="input-container">
-                      <span className="input-icon">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4Z" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          <polyline points="22,6 12,13 2,6" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      </span>
-                      <input
-                        type="text"
-                        id="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        placeholder="Enter your email or Username"
-                        className="form-input"
-                        required
-                      />
+              <div className="form-section">
+                <div className="form-container">
+                  <form onSubmit={handleSignupSubmit} className="signup-user-form">
+                    <div className="form-group">
+                      <label htmlFor="name" className="form-label">Name</label>
+                      <div className="input-container">
+                        <input
+                          type="text"
+                          id="name"
+                          name="name"
+                          value={signupData.name}
+                          onChange={handleSignupInputChange}
+                          placeholder="Enter your full name"
+                          className="form-input"
+                          required
+                        />
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="form-group">
-                    <label htmlFor="password" className="form-label">
-                      Password
-                    </label>
-                    <div className="input-container">
-                      <span className="input-icon">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <div className="form-group">
+                      <label htmlFor="username" className="form-label">Username</label>
+                      <div className="input-container">
+                        <input
+                          type="text"
+                          id="username"
+                          name="username"
+                          value={signupData.username}
+                          onChange={handleSignupInputChange}
+                          placeholder="Enter your Username"
+                          className="form-input"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="email" className="form-label">Email Address / Username</label>
+                      <div className="input-container">
+                        <svg className="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="#9CA3AF" strokeWidth="2"/>
+                          <path d="M22 6L12 13 2 6" stroke="#9CA3AF" strokeWidth="2"/>
+                        </svg>
+                        <input
+                          type="email"
+                          id="email"
+                          name="email"
+                          value={signupData.email}
+                          onChange={handleSignupInputChange}
+                          placeholder="Enter your email or Username"
+                          className="form-input"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="password" className="form-label">Password</label>
+                      <div className="input-container">
+                        <svg className="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
                           <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="#9CA3AF" strokeWidth="2"/>
                           <circle cx="12" cy="16" r="1" fill="#9CA3AF"/>
-                          <path d="M7 11V7C7 5.67392 7.52678 4.40215 8.46447 3.46447C9.40215 2.52678 10.6739 2 12 2C13.3261 2 14.5979 2.52678 15.5355 3.46447C16.4732 4.40215 17 5.67392 17 7V11" stroke="#9CA3AF" strokeWidth="2"/>
+                          <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="#9CA3AF" strokeWidth="2"/>
                         </svg>
-                      </span>
-                      <input
-                        type={showPassword ? "text" : "password"}
-                        id="password"
-                        name="password"
-                        value={formData.password}
-                        onChange={handleInputChange}
-                        placeholder="Enter your password"
-                        className="form-input"
-                        required
-                      />
-                      <button
-                        type="button"
-                        className="password-toggle"
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          id="password"
+                          name="password"
+                          value={signupData.password}
+                          onChange={handleSignupInputChange}
+                          placeholder="Enter your password"
+                          className="form-input"
+                          required
+                        />
+                        <button 
+                          type="button" 
+                          className="password-toggle"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="#9CA3AF" strokeWidth="2"/>
+                            <circle cx="12" cy="12" r="3" stroke="#9CA3AF" strokeWidth="2"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="confirmPassword" className="form-label">Re-enter password</label>
+                      <div className="input-container">
+                        <svg className="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="#9CA3AF" strokeWidth="2"/>
+                          <circle cx="12" cy="16" r="1" fill="#9CA3AF"/>
+                          <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="#9CA3AF" strokeWidth="2"/>
+                        </svg>
+                        <input
+                          type={showConfirmPassword ? "text" : "password"}
+                          id="confirmPassword"
+                          name="confirmPassword"
+                          value={signupData.confirmPassword}
+                          onChange={handleSignupInputChange}
+                          placeholder="Re-enter your password"
+                          className="form-input"
+                          required
+                        />
+                        <button 
+                          type="button" 
+                          className="password-toggle"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="#9CA3AF" strokeWidth="2"/>
+                            <circle cx="12" cy="12" r="3" stroke="#9CA3AF" strokeWidth="2"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="signup-login-link">
+                      <span>Already have an account? </span>
+                      <button 
+                        type="button" 
+                        className="login-link"
                         onClick={() => {
-                          console.log('Toggle clicked! Current state:', showPassword);
-                          setShowPassword(!showPassword);
+                          setCurrentView('main');
+                          setActiveTab('login');
                         }}
                       >
-                        {showPassword ? (
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            <path d="M2 2L22 22" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
-                        ) : (
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            <circle cx="12" cy="12" r="3" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
-                        )}
+                        Login
                       </button>
                     </div>
-                  </div>
 
-                  <div className="form-options">
-                    <label className="checkbox-container">
-                      <input
-                        type="checkbox"
-                        name="rememberMe"
-                        checked={formData.rememberMe}
-                        onChange={handleInputChange}
-                        className="checkbox"
-                      />
-                      <span className="checkmark"></span>
-                      <span className="checkbox-label">Remember me</span>
-                    </label>
-                    <button type="button" className="forgot-password">
-                      Forgot password?
-                    </button>
-                  </div>
-
-                  <button type="submit" className="login-button">
-                    Login to Account
-                  </button>
-                </form>
-              ) : (
-                /* Register/Signup Section */
-                <div className="signup-form">
-                  <h2 className="signup-title">Sign Up</h2>
-                  <div className="signup-buttons">
-                    <button 
-                      type="button" 
-                      className="signup-option-button"
-                      onClick={() => console.log('Sign up as User clicked')}
-                    >
-                      Sign Up as User
-                    </button>
-                    <button 
-                      type="button" 
-                      className="signup-option-button"
-                      onClick={() => console.log('Sign up as Lawyer clicked')}
-                    >
-                      Sign Up as Lawyer
-                    </button>
-                  </div>
+                    <button type="submit" className="signup-button">Sign up</button>
+                  </form>
                 </div>
-              )}
-            </div>
-          </div>
+              </div>
+            </>
+          )}
+
+          {currentView === 'signupLawyer' && (
+            <>
+              <div className="welcome-section signup-welcome">
+                <div className="welcome-content">
+                  <h1 className="signup-welcome-title">Sign up as Lawyer</h1>
+                  <p className="signup-welcome-subtitle">
+                    Sign up to create lawyer account, get started providing legal consultation.
+                  </p>
+                </div>
+              </div>
+
+              <div className="form-section">
+                <div className="form-container">
+                  <form onSubmit={handleLawyerSignupSubmit} className="signup-lawyer-form">
+                    <div className="form-group">
+                      <label htmlFor="lawyer-name" className="form-label">Name</label>
+                      <div className="input-container">
+                        <input
+                          type="text"
+                          id="lawyer-name"
+                          name="name"
+                          value={lawyerSignupData.name}
+                          onChange={handleLawyerSignupInputChange}
+                          placeholder="Enter your full name"
+                          className="form-input"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="lawyer-username" className="form-label">Username</label>
+                      <div className="input-container">
+                        <input
+                          type="text"
+                          id="lawyer-username"
+                          name="username"
+                          value={lawyerSignupData.username}
+                          onChange={handleLawyerSignupInputChange}
+                          placeholder="Enter your Username"
+                          className="form-input"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="bar-council-number" className="form-label">BAR council number</label>
+                      <div className="input-container">
+                        <input
+                          type="text"
+                          id="bar-council-number"
+                          name="barCouncilNumber"
+                          value={lawyerSignupData.barCouncilNumber}
+                          onChange={handleLawyerSignupInputChange}
+                          placeholder="Enter your BAR council number"
+                          className="form-input"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="lawyer-email" className="form-label">Email Address / Username</label>
+                      <div className="input-container">
+                        <svg className="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="#9CA3AF" strokeWidth="2"/>
+                          <path d="M22 6L12 13 2 6" stroke="#9CA3AF" strokeWidth="2"/>
+                        </svg>
+                        <input
+                          type="email"
+                          id="lawyer-email"
+                          name="email"
+                          value={lawyerSignupData.email}
+                          onChange={handleLawyerSignupInputChange}
+                          placeholder="Enter your email or Username"
+                          className="form-input"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="lawyer-password" className="form-label">Password</label>
+                      <div className="input-container">
+                        <svg className="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="#9CA3AF" strokeWidth="2"/>
+                          <circle cx="12" cy="16" r="1" fill="#9CA3AF"/>
+                          <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="#9CA3AF" strokeWidth="2"/>
+                        </svg>
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          id="lawyer-password"
+                          name="password"
+                          value={lawyerSignupData.password}
+                          onChange={handleLawyerSignupInputChange}
+                          placeholder="Enter your password"
+                          className="form-input"
+                          required
+                        />
+                        <button 
+                          type="button" 
+                          className="password-toggle"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="#9CA3AF" strokeWidth="2"/>
+                            <circle cx="12" cy="12" r="3" stroke="#9CA3AF" strokeWidth="2"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="lawyer-confirm-password" className="form-label">Re-enter password</label>
+                      <div className="input-container">
+                        <svg className="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="#9CA3AF" strokeWidth="2"/>
+                          <circle cx="12" cy="16" r="1" fill="#9CA3AF"/>
+                          <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="#9CA3AF" strokeWidth="2"/>
+                        </svg>
+                        <input
+                          type={showConfirmPassword ? "text" : "password"}
+                          id="lawyer-confirm-password"
+                          name="confirmPassword"
+                          value={lawyerSignupData.confirmPassword}
+                          onChange={handleLawyerSignupInputChange}
+                          placeholder="Re-enter your password"
+                          className="form-input"
+                          required
+                        />
+                        <button 
+                          type="button" 
+                          className="password-toggle"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="#9CA3AF" strokeWidth="2"/>
+                            <circle cx="12" cy="12" r="3" stroke="#9CA3AF" strokeWidth="2"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="signup-login-link">
+                      <span>Already have an account? </span>
+                      <button 
+                        type="button" 
+                        className="login-link"
+                        onClick={() => {
+                          setCurrentView('main');
+                          setActiveTab('login');
+                        }}
+                      >
+                        Login
+                      </button>
+                    </div>
+
+                    <button type="submit" className="signup-button">Sign up</button>
+                  </form>
+                </div>
+              </div>
+            </>
+          )}
+
+          {currentView === 'main' && (
+            <>
+              <div className="welcome-section">
+                <div className="welcome-content">
+                  <h1 className="welcome-title">Welcome To OKIL AI</h1>
+                  <p className="welcome-subtitle">
+                    Sign in to your OKIL AI account. Your trusted partner in legal consultation.
+                  </p>
+                </div>
+              </div>
+
+              <div className="form-section">
+                <div className="form-container">
+                  <div className="tabs">
+                    <button 
+                      className={`tab ${activeTab === 'login' ? 'active' : ''}`}
+                      onClick={() => setActiveTab('login')}
+                    >
+                      Login
+                    </button>
+                    <button 
+                      className={`tab ${activeTab === 'register' ? 'active' : ''}`}
+                      onClick={() => setActiveTab('register')}
+                    >
+                      Register
+                    </button>
+                  </div>
+
+                  {activeTab === 'login' ? (
+                    <form onSubmit={handleSubmit} className="login-form">
+                      <div className="form-group">
+                        <label htmlFor="email" className="form-label">Email Address / Username</label>
+                        <div className="input-container">
+                          <svg className="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="#9CA3AF" strokeWidth="2"/>
+                            <path d="M22 6L12 13 2 6" stroke="#9CA3AF" strokeWidth="2"/>
+                          </svg>
+                          <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            value={formData.email}
+                            onChange={handleInputChange}
+                            placeholder="Enter your email or Username"
+                            className="form-input"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className="form-group">
+                        <label htmlFor="password" className="form-label">Password</label>
+                        <div className="input-container">
+                          <svg className="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="#9CA3AF" strokeWidth="2"/>
+                            <circle cx="12" cy="16" r="1" fill="#9CA3AF"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="#9CA3AF" strokeWidth="2"/>
+                          </svg>
+                          <input
+                            type={showPassword ? "text" : "password"}
+                            id="password"
+                            name="password"
+                            value={formData.password}
+                            onChange={handleInputChange}
+                            placeholder="Enter your password"
+                            className="form-input"
+                            required
+                          />
+                          <button 
+                            type="button" 
+                            className="password-toggle"
+                            onClick={() => setShowPassword(!showPassword)}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="#9CA3AF" strokeWidth="2"/>
+                              <circle cx="12" cy="12" r="3" stroke="#9CA3AF" strokeWidth="2"/>
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="form-options">
+                        <label className="checkbox-label">
+                          <input
+                            type="checkbox"
+                            name="rememberMe"
+                            checked={formData.rememberMe}
+                            onChange={handleInputChange}
+                            className="checkbox"
+                          />
+                          <span className="checkmark"></span>
+                          Remember me
+                        </label>
+                        <a href="#" className="forgot-password">Forgot password?</a>
+                      </div>
+
+                      <button type="submit" className="login-button">Log in</button>
+                    </form>
+                  ) : (
+                    <div className="signup-options">
+                      <div className="signup-content">
+                        <p className="signup-description">
+                          Choose your account type to get started with OKIL AI
+                        </p>
+                        <div className="signup-buttons">
+                          <button 
+                            type="button" 
+                            className="signup-option-button"
+                            onClick={() => setCurrentView('signupUser')}
+                          >
+                            Sign Up as User
+                          </button>
+                          <button 
+                            type="button" 
+                            className="signup-option-button"
+                            onClick={() => setCurrentView('signupLawyer')}
+                          >
+                            Sign Up as Lawyer
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
