@@ -110,19 +110,21 @@ const UserDashboard = ({ user, onLogout }) => {
         </div>
 
         {/* Recent Chats Section */}
-        <div className="recent-chats">
+        <div className="recent-chats-section">
           <h3 className="recent-chats-title">RECENT CHATS</h3>
-          {recentChats.map(chat => (
-            <div 
-              key={chat.id} 
-              className={`recent-chat-item ${
-                currentChatId === chat.id ? 'active' : ''
-              }`}
-              onClick={() => handleChatSelect(chat.id)}
-            >
-              {chat.title}
-            </div>
-          ))}
+          <div className="recent-chats-list">
+            {recentChats.map(chat => (
+              <div 
+                key={chat.id} 
+                className={`recent-chat-item ${
+                  currentChatId === chat.id ? 'active' : ''
+                }`}
+                onClick={() => handleChatSelect(chat.id)}
+              >
+                {chat.title}
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Bottom Menu */}

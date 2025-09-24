@@ -223,16 +223,60 @@ const Login = () => {
     setActiveTab('login');
   };
 
-  // Show UserDashboard if user is authenticated and is a user account
+  // Show UserDashboard ONLY if user is authenticated and is a user account
   if (isAuthenticated && currentUser?.accountType === 'user') {
     return <UserDashboard user={currentUser} onLogout={handleLogout} />;
   }
 
-  // Show lawyer dashboard if user is authenticated and is a lawyer account
+  // Show message for lawyer accounts - they cannot access UserDashboard
   if (isAuthenticated && currentUser?.accountType === 'lawyer') {
-    // For now, redirect lawyers to the same dashboard
-    // Later you can create a separate LawyerDashboard component
-    return <UserDashboard user={currentUser} onLogout={handleLogout} />;
+    return (
+      <div className="lawyer-access-denied" style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100vh',
+        backgroundColor: '#f8fafc',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif'
+      }}>
+        <div style={{
+          textAlign: 'center',
+          padding: '40px',
+          backgroundColor: 'white',
+          borderRadius: '12px',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+          maxWidth: '500px'
+        }}>
+          <h2 style={{ color: '#1f2937', marginBottom: '16px' }}>
+            Welcome, {currentUser.name}!
+          </h2>
+          <p style={{ color: '#6b7280', marginBottom: '24px', fontSize: '16px' }}>
+            You are logged in as a <strong>Lawyer</strong>. This dashboard is exclusively for <strong>User</strong> accounts only.
+          </p>
+          <p style={{ color: '#6b7280', marginBottom: '24px' }}>
+            The Lawyer Dashboard is coming soon. Please contact support for access to lawyer-specific features.
+          </p>
+          <button 
+            onClick={handleLogout}
+            style={{
+              backgroundColor: '#1E3A8A',
+              color: 'white',
+              padding: '12px 24px',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '16px',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseOver={(e) => e.target.style.backgroundColor = '#1e40af'}
+            onMouseOut={(e) => e.target.style.backgroundColor = '#1E3A8A'}
+          >
+            Sign Out
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
