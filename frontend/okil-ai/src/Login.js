@@ -1,7 +1,17 @@
 ﻿import React, { useState } from "react";
 import './Login.css';
+import UserDashboard from './UserDashboard';
 
 const Login = () => {
+  // Store registered users and lawyers
+  const [registeredUsers, setRegisteredUsers] = useState([]);
+  const [registeredLawyers, setRegisteredLawyers] = useState([]);
+  const [loginMessage, setLoginMessage] = useState('');
+  
+  // Authentication state
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -36,6 +46,8 @@ const Login = () => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
+    // Clear login message when user starts typing
+    if (loginMessage) setLoginMessage('');
   };
 
   const handleSignupInputChange = (e) => {
@@ -57,17 +69,171 @@ const Login = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log('Login attempt:', formData);
+    
+    // Check if user exists in registered users
+    const userExists = registeredUsers.find(user => 
+      (user.email === formData.email || user.username === formData.email) && 
+      user.password === formData.password
+    );
+
+    // Check if lawyer exists in registered lawyers
+    const lawyerExists = registeredLawyers.find(lawyer => 
+      (lawyer.email === formData.email || lawyer.username === formData.email) && 
+      lawyer.password === formData.password
+    );
+
+    if (userExists) {
+      setLoginMessage(`Welcome back, ${userExists.name}! (User Account)`);
+      console.log('User login successful:', userExists);
+      setIsAuthenticated(true);
+      setCurrentUser(userExists);
+      // Clear form data
+      setFormData({ email: '', password: '', rememberMe: false });
+    } else if (lawyerExists) {
+      setLoginMessage(`Welcome back, ${lawyerExists.name}! (Lawyer Account)`);
+      console.log('Lawyer login successful:', lawyerExists);
+      setIsAuthenticated(true);
+      setCurrentUser(lawyerExists);
+      // Clear form data
+      setFormData({ email: '', password: '', rememberMe: false });
+    } else {
+      setLoginMessage('Invalid email/username or password. Please try again or sign up first.');
+    }
   };
 
   const handleSignupSubmit = (e) => {
     e.preventDefault();
-    console.log('Signup attempt:', signupData);
+    
+    // Validate form data
+    if (signupData.password !== signupData.confirmPassword) {
+      alert('Passwords do not match!');
+      return;
+    }
+
+    if (signupData.password.length < 6) {
+      alert('Password must be at least 6 characters long!');
+      return;
+    }
+
+    // Check if user already exists
+    const userExists = registeredUsers.find(user => 
+      user.email === signupData.email || user.username === signupData.username
+    );
+
+    if (userExists) {
+      alert('User with this email or username already exists!');
+      return;
+    }
+
+    // Create new user
+    const newUser = {
+      id: Date.now(),
+      name: signupData.name,
+      username: signupData.username,
+      email: signupData.email,
+      password: signupData.password,
+      accountType: 'user',
+      createdAt: new Date().toISOString()
+    };
+
+    // Add to registered users
+    setRegisteredUsers(prev => [...prev, newUser]);
+    
+    console.log('User signup successful:', newUser);
+    alert(`Account created successfully! Welcome, ${newUser.name}!`);
+    
+    // Reset form and redirect to login
+    setSignupData({
+      name: '',
+      username: '',
+      email: '',
+      password: '',
+      confirmPassword: ''
+    });
+    
+    setCurrentView('main');
+    setActiveTab('login');
+    setLoginMessage('Account created successfully! You can now log in with your credentials.');
   };
 
   const handleLawyerSignupSubmit = (e) => {
     e.preventDefault();
-    console.log('Lawyer signup attempt:', lawyerSignupData);
+    
+    // Validate form data
+    if (lawyerSignupData.password !== lawyerSignupData.confirmPassword) {
+      alert('Passwords do not match!');
+      return;
+    }
+
+    if (lawyerSignupData.password.length < 6) {
+      alert('Password must be at least 6 characters long!');
+      return;
+    }
+
+    // Check if lawyer already exists
+    const lawyerExists = registeredLawyers.find(lawyer => 
+      lawyer.email === lawyerSignupData.email || 
+      lawyer.username === lawyerSignupData.username ||
+      lawyer.barCouncilNumber === lawyerSignupData.barCouncilNumber
+    );
+
+    if (lawyerExists) {
+      alert('Lawyer with this email, username, or BAR council number already exists!');
+      return;
+    }
+
+    // Create new lawyer
+    const newLawyer = {
+      id: Date.now(),
+      name: lawyerSignupData.name,
+      username: lawyerSignupData.username,
+      barCouncilNumber: lawyerSignupData.barCouncilNumber,
+      email: lawyerSignupData.email,
+      password: lawyerSignupData.password,
+      accountType: 'lawyer',
+      createdAt: new Date().toISOString()
+    };
+
+    // Add to registered lawyers
+    setRegisteredLawyers(prev => [...prev, newLawyer]);
+    
+    console.log('Lawyer signup successful:', newLawyer);
+    alert(`Lawyer account created successfully! Welcome, ${newLawyer.name}!`);
+    
+    // Reset form and redirect to login
+    setLawyerSignupData({
+      name: '',
+      username: '',
+      barCouncilNumber: '',
+      email: '',
+      password: '',
+      confirmPassword: ''
+    });
+    
+    setCurrentView('main');
+    setActiveTab('login');
+    setLoginMessage('Lawyer account created successfully! You can now log in with your credentials.');
   };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setCurrentUser(null);
+    setLoginMessage('');
+    setCurrentView('main');
+    setActiveTab('login');
+  };
+
+  // Show UserDashboard if user is authenticated and is a user account
+  if (isAuthenticated && currentUser?.accountType === 'user') {
+    return <UserDashboard user={currentUser} onLogout={handleLogout} />;
+  }
+
+  // Show lawyer dashboard if user is authenticated and is a lawyer account
+  if (isAuthenticated && currentUser?.accountType === 'lawyer') {
+    // For now, redirect lawyers to the same dashboard
+    // Later you can create a separate LawyerDashboard component
+    return <UserDashboard user={currentUser} onLogout={handleLogout} />;
+  }
 
   return (
     <div className="login-page" style={{
@@ -169,6 +335,7 @@ const Login = () => {
                           placeholder="Enter your password"
                           className="form-input"
                           required
+                          minLength={6}
                         />
                         <button 
                           type="button" 
@@ -334,6 +501,7 @@ const Login = () => {
                           placeholder="Enter your password"
                           className="form-input"
                           required
+                          minLength={6}
                         />
                         <button 
                           type="button" 
@@ -430,6 +598,12 @@ const Login = () => {
 
                   {activeTab === 'login' ? (
                     <form onSubmit={handleSubmit} className="login-form">
+                      {loginMessage && (
+                        <div className={`login-message ${loginMessage.includes('Welcome') ? 'success' : 'error'}`}>
+                          {loginMessage}
+                        </div>
+                      )}
+                      
                       <div className="form-group">
                         <label htmlFor="email" className="form-label">Email Address / Username</label>
                         <div className="input-container">
