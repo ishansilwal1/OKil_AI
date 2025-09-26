@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import './UserDashboard.css';
+import TalkToLawyer from './TalkToLawyer';
+import BookAppointment from './BookAppointment';
 
 const UserDashboard = ({ user, onLogout }) => {
   const [currentChatId, setCurrentChatId] = useState(null);
   const [message, setMessage] = useState('');
   const [allChats, setAllChats] = useState({}); // Store all chat conversations
   const [recentChats, setRecentChats] = useState([]);
+  const [currentView, setCurrentView] = useState('chat'); // 'chat', 'talk-to-lawyer', 'library', 'book-appointment'
 
   // Get current chat history
   const chatHistory = currentChatId && allChats[currentChatId] ? allChats[currentChatId].messages : [];
@@ -73,10 +76,19 @@ const UserDashboard = ({ user, onLogout }) => {
 
   const handleNewChat = () => {
     setCurrentChatId(null);
+    setCurrentView('chat');
   };
 
   const handleChatSelect = (chatId) => {
     setCurrentChatId(chatId);
+    setCurrentView('chat');
+  };
+
+  const handleNavigation = (view) => {
+    setCurrentView(view);
+    if (view === 'chat') {
+      setCurrentChatId(null);
+    }
   };
 
   return (
@@ -93,17 +105,26 @@ const UserDashboard = ({ user, onLogout }) => {
 
         {/* Navigation Menu */}
         <div className="sidebar-menu">
-          <div className="menu-item active" onClick={handleNewChat}>
+          <div 
+            className={`menu-item ${currentView === 'chat' ? 'active' : ''}`} 
+            onClick={handleNewChat}
+          >
             <img src="/new chat.png" alt="New chat" className="menu-icon" />
             <span>New chat</span>
           </div>
 
-          <div className="menu-item">
+          <div 
+            className={`menu-item ${currentView === 'talk-to-lawyer' ? 'active' : ''}`}
+            onClick={() => handleNavigation('talk-to-lawyer')}
+          >
             <img src="/talk.png" alt="Talk to lawyer" className="menu-icon" />
             <span>Talk to lawyer</span>
           </div>
 
-          <div className="menu-item">
+          <div 
+            className={`menu-item ${currentView === 'library' ? 'active' : ''}`}
+            onClick={() => handleNavigation('library')}
+          >
             <img src="/library.png" alt="Library" className="menu-icon" />
             <span>Library</span>
           </div>
@@ -148,49 +169,55 @@ const UserDashboard = ({ user, onLogout }) => {
         </div>
       </div>
 
-      {/* Main Content Area - No Header */}
-      <div className="main-content">
-        {/* Chat Container */}
-        <div className="chat-container">
-          <div className="chat-messages">
-            {chatHistory.length === 0 ? (
-              <div className="welcome-message">
-                <h2>Hey, How can I help you Today</h2>
-              </div>
-            ) : (
-              <div className="message-list">
-                {chatHistory.map(msg => (
-                  <div key={msg.id} className={`message-container ${msg.type}`}>
-                    <div className={`message-bubble ${msg.type}-bubble`}>
-                      {msg.text}
+      {/* Main Content Area */}
+      {currentView === 'talk-to-lawyer' ? (
+        <TalkToLawyer onNavigate={handleNavigation} />
+      ) : currentView === 'book-appointment' ? (
+        <BookAppointment onNavigate={handleNavigation} />
+      ) : (
+        <div className="main-content">
+          {/* Chat Container */}
+          <div className="chat-container">
+            <div className="chat-messages">
+              {chatHistory.length === 0 ? (
+                <div className="welcome-message">
+                  <h2>Hey, How can I help you Today</h2>
+                </div>
+              ) : (
+                <div className="message-list">
+                  {chatHistory.map(msg => (
+                    <div key={msg.id} className={`message-container ${msg.type}`}>
+                      <div className={`message-bubble ${msg.type}-bubble`}>
+                        {msg.text}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
-          <div className="chat-input-container">
-            <form onSubmit={handleSendMessage} className="chat-form">
-              <div className="input-wrapper">
-                <input
-                  type="text"
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Ask me anything about legal matter..."
-                  className="chat-input"
-                />
-                <button type="submit" className="send-button" disabled={!message.trim()}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                    <path d="M22 2L11 13" stroke="currentColor" strokeWidth="2"/>
-                    <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" strokeWidth="2"/>
-                  </svg>
-                </button>
-              </div>
-            </form>
+            <div className="chat-input-container">
+              <form onSubmit={handleSendMessage} className="chat-form">
+                <div className="input-wrapper">
+                  <input
+                    type="text"
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Ask me anything about legal matter..."
+                    className="chat-input"
+                  />
+                  <button type="submit" className="send-button" disabled={!message.trim()}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                      <path d="M22 2L11 13" stroke="currentColor" strokeWidth="2"/>
+                      <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" strokeWidth="2"/>
+                    </svg>
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
