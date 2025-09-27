@@ -20,18 +20,35 @@ const BookAppointment = ({ onNavigate }) => {
   };
 
   // Simple working function
-  const bookAppointment = () => {
-    // Show success popup
-    setIsPopupVisible(true);
+  const bookAppointment = (e) => {
+    // Prevent any default behavior
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     
-    // After 2 seconds, hide popup and redirect
+    console.log('bookAppointment clicked');
+    console.log('onNavigate function:', onNavigate);
+    
+    // Show success popup immediately
+    setIsPopupVisible(true);
+    console.log('Popup set to visible');
+    
+    // After 3 seconds, hide popup and redirect
     setTimeout(() => {
+      console.log('Timeout executed, hiding popup and navigating');
       setIsPopupVisible(false);
-      // Navigate back to talk-to-lawyer page
-      if (onNavigate) {
-        onNavigate('talk-to-lawyer');
-      }
-    }, 2000);
+      
+      // Use setTimeout to ensure state update completes first
+      setTimeout(() => {
+        if (onNavigate && typeof onNavigate === 'function') {
+          console.log('Calling onNavigate with talk-to-lawyer');
+          onNavigate('talk-to-lawyer');
+        } else {
+          console.error('onNavigate is not available:', onNavigate);
+        }
+      }, 100);
+    }, 3000);
   };
 
   const handleBackToLawyers = () => {
@@ -59,7 +76,7 @@ const BookAppointment = ({ onNavigate }) => {
         <div className="form-card">
           <h2 className="form-title">Book an appointment to talk with lawyer</h2>
           
-          <form className="appointment-form">
+          <form className="appointment-form" onSubmit={(e) => e.preventDefault()}>
             <div className="form-group">
               <label htmlFor="name" className="form-label">
                 <span className="required">*</span> Name
@@ -141,6 +158,7 @@ const BookAppointment = ({ onNavigate }) => {
             </div>
 
             <button 
+              type="button"
               className="book-appointment-btn"
               onClick={bookAppointment}
             >
@@ -152,11 +170,14 @@ const BookAppointment = ({ onNavigate }) => {
 
       {/* Success Popup */}
       {isPopupVisible && (
-        <div className="popup-overlay">
+        <div className="popup-overlay" style={{ zIndex: 9999 }}>
           <div className="popup-content">
             <div className="popup-icon">✓</div>
             <h3 className="popup-title">Appointment Booked!</h3>
             <p className="popup-message">Your appointment has been successfully booked. A lawyer will contact you shortly.</p>
+            <p style={{ fontSize: '12px', color: '#666', marginTop: '10px' }}>
+              Redirecting to Talk to Lawyer page in 3 seconds...
+            </p>
           </div>
         </div>
       )}
