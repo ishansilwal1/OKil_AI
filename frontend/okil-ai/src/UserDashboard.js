@@ -2,13 +2,15 @@ import React, { useState } from 'react';
 import './UserDashboard.css';
 import TalkToLawyer from './TalkToLawyer';
 import BookAppointment from './BookAppointment';
+import LeaveQuery from './LeaveQuery';
+import Library from './Library';
 
 const UserDashboard = ({ user, onLogout }) => {
   const [currentChatId, setCurrentChatId] = useState(null);
   const [message, setMessage] = useState('');
   const [allChats, setAllChats] = useState({}); // Store all chat conversations
   const [recentChats, setRecentChats] = useState([]);
-  const [currentView, setCurrentView] = useState('chat'); // 'chat', 'talk-to-lawyer', 'library', 'book-appointment'
+  const [currentView, setCurrentView] = useState('chat'); // 'chat', 'talk-to-lawyer', 'library', 'book-appointment', 'leave-query'
 
   // Get current chat history
   const chatHistory = currentChatId && allChats[currentChatId] ? allChats[currentChatId].messages : [];
@@ -174,6 +176,10 @@ const UserDashboard = ({ user, onLogout }) => {
         <TalkToLawyer onNavigate={handleNavigation} />
       ) : currentView === 'book-appointment' ? (
         <BookAppointment onNavigate={handleNavigation} />
+      ) : currentView === 'leave-query' ? (
+        <LeaveQuery onNavigate={handleNavigation} />
+      ) : currentView === 'library' ? (
+        <Library onNavigate={handleNavigation} />
       ) : (
         <div className="main-content">
           {/* Chat Container */}

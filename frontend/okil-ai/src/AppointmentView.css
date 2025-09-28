@@ -1,0 +1,398 @@
+/* AppointmentView.css - Exact Figma Design Match */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.appointment-view {
+  display: flex;
+  min-height: 100vh;
+  width: 100vw;
+  background: #f0f2f5;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Sidebar Styles - Same as Dashboard */
+.sidebar {
+  width: 180px;
+  background: #1e3a8a;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 10;
+}
+
+.logo-section {
+  display: flex;
+  align-items: center;
+  padding: 20px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logo {
+  width: 28px;
+  height: 28px;
+  margin-right: 8px;
+  object-fit: contain;
+}
+
+.logo-text {
+  font-size: 16px;
+  font-weight: bold;
+  color: #009688;
+  letter-spacing: 0.5px;
+}
+
+.nav-menu {
+  padding: 16px 0;
+  flex: 1;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
+}
+
+.nav-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-item.active {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-left-color: #60a5fa;
+}
+
+.nav-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+  object-fit: contain;
+}
+
+.nav-icon-text {
+  font-size: 16px;
+  margin-right: 10px;
+}
+
+.nav-item span:last-child {
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.recent-chats {
+  padding: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 35px;
+}
+
+.recent-chats h4 {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.5px;
+}
+
+/* Sidebar Bottom Section */
+.sidebar-bottom {
+  margin-top: auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 16px;
+}
+
+.settings-item,
+.signout-item {
+  color: rgba(255, 255, 255, 0.9);
+  transition: all 0.2s ease;
+}
+
+.settings-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #009688;
+}
+
+.signout-item:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+/* Main Content Styles */
+.main-content {
+  flex: 1;
+  padding: 20px 40px;
+  overflow-y: auto;
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(1px);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.appointment-content {
+  width: 100%;
+  max-width: 750px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+.page-title {
+  font-size: 28px;
+  font-weight: bold;
+  color: #009688;
+  margin-bottom: 0;
+  text-align: left;
+  margin-left: 0;
+  margin-top: 0;
+}
+
+/* Appointment Details Frame - Blue Border as in Figma */
+.appointment-details-frame {
+  background: white;
+  border-radius: 7px;
+  padding: 0;
+  overflow: visible;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  width: 100%;
+  margin-left: 200px;
+}
+
+/* Appointment Card */
+.appointment-card {
+  background: white;
+  margin: 15px 20px;
+  border-radius: 10px;
+  padding: 20px 25px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: none;
+}
+
+.appointment-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.info-row.issue-row {
+  margin-bottom: 6px;
+}
+
+.info-label {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 13px;
+  min-width: 120px;
+  flex-shrink: 0;
+}
+
+.info-value {
+  font-weight: 400;
+  color: #495057;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.issue-description {
+  background: #f8f9fa;
+  padding: 12px 15px;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #495057;
+  margin-top: 4px;
+  margin-left: 120px;
+}
+
+/* Lawyer Actions Section */
+.lawyer-actions {
+  padding: 20px 25px;
+  background: white;
+  border-top: 1px solid #e9ecef;
+}
+
+.actions-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 12px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.action-btn {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 140px;
+  text-align: center;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.accept-btn {
+  background: #009688;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0, 150, 136, 0.2);
+}
+
+.accept-btn:hover:not(:disabled) {
+  background: #00796b;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 150, 136, 0.3);
+}
+
+.reschedule-btn {
+  background: #2196F3;
+  color: white;
+  box-shadow: 0 2px 4px rgba(33, 150, 243, 0.2);
+}
+
+.reschedule-btn:hover:not(:disabled) {
+  background: #1976D2;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+}
+
+.decline-btn {
+  background: #f44336;
+  color: white;
+  box-shadow: 0 2px 4px rgba(244, 67, 54, 0.2);
+}
+
+.decline-btn:hover:not(:disabled) {
+  background: #d32f2f;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(244, 67, 54, 0.3);
+}
+
+/* Notes Section */
+.notes-section {
+  padding: 20px 25px;
+  background: white;
+  border-top: 1px solid #e9ecef;
+}
+
+.notes-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 8px;
+}
+
+.notes-textarea {
+  width: 100%;
+  min-height: 60px;
+  padding: 10px 12px;
+  border: 2px solid #e9ecef;
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: inherit;
+  line-height: 1.4;
+  color: #495057;
+  resize: vertical;
+  transition: border-color 0.2s ease;
+}
+
+.notes-textarea:focus {
+  outline: none;
+  border-color: #009688;
+  box-shadow: 0 0 0 3px rgba(0, 150, 136, 0.1);
+}
+
+.notes-textarea::placeholder {
+  color: #adb5bd;
+  font-style: italic;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .main-content {
+    padding: 20px;
+  }
+  
+  .appointment-card {
+    margin: 20px;
+    padding: 20px;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+  }
+  
+  .action-btn {
+    min-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-title {
+    font-size: 24px;
+  }
+  
+  .appointment-details-frame {
+    border-width: 2px;
+  }
+  
+  .appointment-card {
+    margin: 15px;
+    padding: 15px;
+  }
+}
+
+/* Back Button */
+.back-btn {
+  background: #6c757d;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 16px;
+  transition: background-color 0.2s ease;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+}
+
+.back-btn:hover {
+  background: #5a6268;
+}

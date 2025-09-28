@@ -82,7 +82,12 @@ const TalkToLawyer = ({ onNavigate }) => {
                 >
                   Talk To Lawyer
                 </button>
-                <button className="leave-query-btn">Leave a query</button>
+                <button 
+                  className="leave-query-btn"
+                  onClick={() => handleMenuClick('leave-query')}
+                >
+                  Leave a query
+                </button>
               </div>
             </div>
           ))}
