@@ -1,17 +1,39 @@
-﻿import React, { useState } from "react";
-import './Login.css';
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import './Auth.css';
+import { Tabs, SignupOptions, SignupLoginLink } from '../Links/MyLinks';
 
-const Login = () => {
+const Auth = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+
+  const pathname = location.pathname;
+
+  // derive view and active tab from the current URL
+  const currentView = pathname.includes('/register/user')
+    ? 'signupUser'
+    : pathname.includes('/register/lawyer')
+    ? 'signupLawyer'
+    : pathname === '/forgot-password'
+    ? 'forgotPassword'
+    : pathname === '/reset-password'
+    ? 'resetPassword'
+    : 'main';
+
+  const activeTab = pathname.includes('/register') ? 'register' : 'login';
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     rememberMe: false
   });
 
-  const [activeTab, setActiveTab] = useState('login');
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [loginError, setLoginError] = useState('');
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [currentView, setCurrentView] = useState('main');
   
   const [signupData, setSignupData] = useState({
     name: '',
@@ -21,6 +43,9 @@ const Login = () => {
     confirmPassword: ''
   });
 
+  const [signupLoading, setSignupLoading] = useState(false);
+  const [signupError, setSignupError] = useState('');
+
   const [lawyerSignupData, setLawyerSignupData] = useState({
     name: '',
     username: '',
@@ -29,6 +54,34 @@ const Login = () => {
     password: '',
     confirmPassword: ''
   });
+
+  const [lawyerSignupLoading, setLawyerSignupLoading] = useState(false);
+  const [lawyerSignupError, setLawyerSignupError] = useState('');
+
+  const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+
+  // Forgot password state (inlined)
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotStatus, setForgotStatus] = useState('idle'); // idle, sending, sent, error
+
+  // Reset password state (inlined)
+  const [resetToken, setResetToken] = useState('');
+  const [resetPassword, setResetPassword] = useState('');
+  const [resetConfirmPassword, setResetConfirmPassword] = useState('');
+  const [resetStatus, setResetStatus] = useState('idle'); // idle, sending, success, error
+  const [resetMessage, setResetMessage] = useState('');
+
+  const validateEmail = (value) => {
+    return /\S+@\S+\.\S+/.test(value);
+  };
+
+  const validatePassword = (pwd) => {
+    if (pwd.length < 8) return 'Password must be at least 8 characters long';
+    if (!/[A-Z]/.test(pwd)) return 'Password must contain at least one uppercase letter';
+    if (!/[a-z]/.test(pwd)) return 'Password must contain at least one lowercase letter';
+    if (!/[0-9]/.test(pwd)) return 'Password must contain at least one number';
+    return null;
+  };
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -56,17 +109,194 @@ const Login = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Login attempt:', formData);
+    setLoginError('');
+    setLoginLoading(true);
+    (async () => {
+      try {
+        const res = await fetch(`${API_BASE}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: formData.email, password: formData.password })
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ detail: 'Login failed' }));
+          throw new Error(err.detail || 'Login failed');
+        }
+        const data = await res.json();
+        // store token
+        if (data.access_token) {
+          localStorage.setItem('okil_token', data.access_token);
+        }
+        setLoginLoading(false);
+        // navigate to home or dashboard
+        navigate('/');
+      } catch (err) {
+        setLoginLoading(false);
+        setLoginError(err.message || 'Login failed');
+      }
+    })();
   };
 
   const handleSignupSubmit = (e) => {
     e.preventDefault();
-    console.log('Signup attempt:', signupData);
+    setSignupError('');
+    if (signupData.password !== signupData.confirmPassword) {
+      setSignupError('Passwords do not match');
+      return;
+    }
+    setSignupLoading(true);
+    (async () => {
+      try {
+        const res = await fetch(`${API_BASE}/auth/register/user`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: signupData.name,
+            username: signupData.username,
+            email: signupData.email,
+            password: signupData.password
+          })
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ detail: 'Registration failed' }));
+          throw new Error(err.detail || 'Registration failed');
+        }
+        setSignupLoading(false);
+        // auto-navigate to login view
+        navigate('/');
+      } catch (err) {
+        setSignupLoading(false);
+        setSignupError(err.message || 'Registration failed');
+      }
+    })();
   };
 
   const handleLawyerSignupSubmit = (e) => {
     e.preventDefault();
-    console.log('Lawyer signup attempt:', lawyerSignupData);
+    setLawyerSignupError('');
+    if (lawyerSignupData.password !== lawyerSignupData.confirmPassword) {
+      setLawyerSignupError('Passwords do not match');
+      return;
+    }
+    setLawyerSignupLoading(true);
+    (async () => {
+      try {
+        const res = await fetch(`${API_BASE}/auth/register/lawyer`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: lawyerSignupData.name,
+            username: lawyerSignupData.username,
+            barCouncilNumber: lawyerSignupData.barCouncilNumber,
+            email: lawyerSignupData.email,
+            password: lawyerSignupData.password
+          })
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ detail: 'Registration failed' }));
+          throw new Error(err.detail || 'Registration failed');
+        }
+        setLawyerSignupLoading(false);
+        navigate('/');
+      } catch (err) {
+        setLawyerSignupLoading(false);
+        setLawyerSignupError(err.message || 'Registration failed');
+      }
+    })();
+  };
+
+  const handleForgotSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateEmail(forgotEmail)) {
+      setForgotStatus('error');
+      return;
+    }
+    setForgotStatus('sending');
+    try {
+      const res = await fetch(`${API_BASE}/auth/forgot`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: forgotEmail })
+      });
+      if (!res.ok) throw new Error('Failed to send reset');
+      setForgotStatus('sent');
+    } catch (err) {
+      setForgotStatus('error');
+    }
+  };
+
+  // Reset password effect to get token from URL
+  useEffect(() => {
+    if (currentView === 'resetPassword') {
+      const tokenFromUrl = searchParams.get('token');
+      if (tokenFromUrl) {
+        setResetToken(tokenFromUrl);
+      } else {
+        setResetStatus('error');
+        setResetMessage('Invalid reset link. Token is missing.');
+      }
+    }
+  }, [currentView, searchParams]);
+
+  const handleResetSubmit = async (e) => {
+    e.preventDefault();
+    setResetStatus('sending');
+    setResetMessage('');
+
+    // Validate passwords
+    const passwordError = validatePassword(resetPassword);
+    if (passwordError) {
+      setResetStatus('error');
+      setResetMessage(passwordError);
+      return;
+    }
+
+    if (resetPassword !== resetConfirmPassword) {
+      setResetStatus('error');
+      setResetMessage('Passwords do not match');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE}/auth/reset`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          token: resetToken,
+          new_password: resetPassword
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setResetStatus('success');
+        setResetMessage('Password reset successfully! Redirecting to login...');
+        setTimeout(() => {
+          navigate('/');
+        }, 3000);
+      } else {
+        setResetStatus('error');
+        // Handle different error response formats
+        let errorMessage = 'Failed to reset password';
+        
+        if (typeof data.detail === 'string') {
+          errorMessage = data.detail;
+        } else if (Array.isArray(data.detail)) {
+          // Handle validation errors
+          errorMessage = data.detail.map(err => err.msg || err.message || 'Validation error').join(', ');
+        } else if (data.message) {
+          errorMessage = data.message;
+        }
+        
+        setResetMessage(errorMessage);
+      }
+    } catch (error) {
+      setResetStatus('error');
+      setResetMessage('Network error. Please try again.');
+    }
   };
 
   return (
@@ -214,21 +444,12 @@ const Login = () => {
                       </div>
                     </div>
 
-                    <div className="signup-login-link">
-                      <span>Already have an account? </span>
-                      <button 
-                        type="button" 
-                        className="login-link"
-                        onClick={() => {
-                          setCurrentView('main');
-                          setActiveTab('login');
-                        }}
-                      >
-                        Login
-                      </button>
-                    </div>
+                    <SignupLoginLink />
 
-                    <button type="submit" className="signup-button">Sign up</button>
+                    {signupError && <div className="form-error">{signupError}</div>}
+                    <button type="submit" className="signup-button" disabled={signupLoading}>
+                      {signupLoading ? 'Creating…' : 'Sign up'}
+                    </button>
                   </form>
                 </div>
               </div>
@@ -379,21 +600,12 @@ const Login = () => {
                       </div>
                     </div>
 
-                    <div className="signup-login-link">
-                      <span>Already have an account? </span>
-                      <button 
-                        type="button" 
-                        className="login-link"
-                        onClick={() => {
-                          setCurrentView('main');
-                          setActiveTab('login');
-                        }}
-                      >
-                        Login
-                      </button>
-                    </div>
+                    <SignupLoginLink />
 
-                    <button type="submit" className="signup-button">Sign up</button>
+                    {lawyerSignupError && <div className="form-error">{lawyerSignupError}</div>}
+                    <button type="submit" className="signup-button" disabled={lawyerSignupLoading}>
+                      {lawyerSignupLoading ? 'Creating…' : 'Sign up'}
+                    </button>
                   </form>
                 </div>
               </div>
@@ -413,20 +625,7 @@ const Login = () => {
 
               <div className="form-section">
                 <div className="form-container">
-                  <div className="tabs">
-                    <button 
-                      className={`tab ${activeTab === 'login' ? 'active' : ''}`}
-                      onClick={() => setActiveTab('login')}
-                    >
-                      Login
-                    </button>
-                    <button 
-                      className={`tab ${activeTab === 'register' ? 'active' : ''}`}
-                      onClick={() => setActiveTab('register')}
-                    >
-                      Register
-                    </button>
-                  </div>
+                  <Tabs />
 
                   {activeTab === 'login' ? (
                     <form onSubmit={handleSubmit} className="login-form">
@@ -493,34 +692,221 @@ const Login = () => {
                           <span className="checkmark"></span>
                           Remember me
                         </label>
-                        <a href="#" className="forgot-password">Forgot password?</a>
+                        <Link to="/forgot-password" className="forgot-password">Forgot password?</Link>
                       </div>
 
                       <button type="submit" className="login-button">Log in</button>
                     </form>
                   ) : (
-                    <div className="signup-options">
-                      <div className="signup-content">
-                        <p className="signup-description">
-                          Choose your account type to get started with OKIL AI
-                        </p>
-                        <div className="signup-buttons">
-                          <button 
-                            type="button" 
-                            className="signup-option-button"
-                            onClick={() => setCurrentView('signupUser')}
-                          >
-                            Sign Up as User
-                          </button>
-                          <button 
-                            type="button" 
-                            className="signup-option-button"
-                            onClick={() => setCurrentView('signupLawyer')}
-                          >
-                            Sign Up as Lawyer
-                          </button>
+                    <SignupOptions />
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+
+          {currentView === 'forgotPassword' && (
+            <>
+              <div className="welcome-section" style={{ backgroundColor: '#3B4F92' }}>
+                <div className="welcome-content">
+                  <h1 className="welcome-title" style={{ color: '#4ECDBC' }}>Forget Password?</h1>
+                  <p className="welcome-subtitle" style={{ color: 'white' }}>
+                    Get a reset link
+                  </p>
+                </div>
+              </div>
+
+              <div className="form-section">
+                <div className="form-container">
+                  {forgotStatus === 'sent' ? (
+                    <div className="forgot-success">
+                      <p>If an account with <strong>{forgotEmail}</strong> exists, a password reset link has been sent.</p>
+                      <p>Check your inbox and follow the instructions to reset your password.</p>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleForgotSubmit} className="forgot-form">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="forgot-email">Email Address</label>
+                        <div className="input-container">
+                          <input
+                            id="forgot-email"
+                            type="email"
+                            value={forgotEmail}
+                            onChange={(e) => { setForgotEmail(e.target.value); setForgotStatus('idle'); }}
+                            placeholder="Enter Email Address"
+                            className="form-input"
+                            required
+                          />
                         </div>
                       </div>
+
+                      {forgotStatus === 'error' && (
+                        <div className="form-error">Please enter a valid email address.</div>
+                      )}
+
+                      <button type="submit" className="login-button" disabled={forgotStatus === 'sending'}>
+                        {forgotStatus === 'sending' ? 'Sending...' : 'Send Link'}
+                      </button>
+                    </form>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+
+          {currentView === 'resetPassword' && (
+            <>
+              <div className="welcome-section" style={{ backgroundColor: '#3B4F92' }}>
+                <div className="welcome-content">
+                  <h1 className="welcome-title" style={{ color: '#4ECDBC' }}>Create New Password</h1>
+                  <p className="welcome-subtitle" style={{ color: 'white' }}>
+                    Enter and confirm your new password to secure your Okil AI account
+                  </p>
+                </div>
+              </div>
+
+              <div className="form-section">
+                <div className="form-container">
+                  {resetStatus === 'success' ? (
+                    <div className="reset-success" style={{
+                      textAlign: 'center',
+                      color: '#28a745',
+                      padding: '2rem',
+                      backgroundColor: '#d4edda',
+                      border: '1px solid #c3e6cb',
+                      borderRadius: '8px'
+                    }}>
+                      <h3>Password Reset Successful!</h3>
+                      <p>{resetMessage}</p>
+                    </div>
+                  ) : resetStatus === 'error' && !resetToken ? (
+                    <div className="reset-error" style={{
+                      textAlign: 'center',
+                      color: '#dc3545',
+                      padding: '2rem',
+                      backgroundColor: '#f8d7da',
+                      border: '1px solid #f5c6cb',
+                      borderRadius: '8px'
+                    }}>
+                      <h3>Invalid Reset Link</h3>
+                      <p>{resetMessage}</p>
+                      <button 
+                        onClick={() => navigate('/')}
+                        style={{
+                          marginTop: '1rem',
+                          padding: '0.75rem 1.5rem',
+                          backgroundColor: '#3B4F92',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '8px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Go to Login
+                      </button>
+                    </div>
+                  ) : (
+                    <div>
+                      <h2 style={{ 
+                        marginBottom: '1.5rem', 
+                        color: '#333',
+                        fontSize: '1.5rem',
+                        fontWeight: 'bold'
+                      }}>
+                        Reset Password
+                      </h2>
+                      
+                      <form onSubmit={handleResetSubmit} className="reset-form">
+                        <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                          <label className="form-label" htmlFor="new-password" style={{
+                            display: 'block',
+                            marginBottom: '0.5rem',
+                            color: '#333',
+                            fontWeight: '500'
+                          }}>
+                            New Password
+                          </label>
+                          <input
+                            id="new-password"
+                            type="password"
+                            value={resetPassword}
+                            onChange={(e) => setResetPassword(e.target.value)}
+                            placeholder="Enter your new password"
+                            className="form-input"
+                            style={{
+                              width: '100%',
+                              padding: '0.75rem',
+                              border: '1px solid #ddd',
+                              borderRadius: '8px',
+                              fontSize: '1rem',
+                              boxSizing: 'border-box'
+                            }}
+                            required
+                          />
+                        </div>
+
+                        <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                          <label className="form-label" htmlFor="confirm-password" style={{
+                            display: 'block',
+                            marginBottom: '0.5rem',
+                            color: '#333',
+                            fontWeight: '500'
+                          }}>
+                            Confirm New Password
+                          </label>
+                          <input
+                            id="confirm-password"
+                            type="password"
+                            value={resetConfirmPassword}
+                            onChange={(e) => setResetConfirmPassword(e.target.value)}
+                            placeholder="Re-enter your new password"
+                            className="form-input"
+                            style={{
+                              width: '100%',
+                              padding: '0.75rem',
+                              border: '1px solid #ddd',
+                              borderRadius: '8px',
+                              fontSize: '1rem',
+                              boxSizing: 'border-box'
+                            }}
+                            required
+                          />
+                        </div>
+
+                        {resetStatus === 'error' && resetMessage && (
+                          <div className="form-error" style={{
+                            color: '#dc3545',
+                            fontSize: '0.875rem',
+                            marginBottom: '1rem',
+                            padding: '0.5rem',
+                            backgroundColor: '#f8d7da',
+                            border: '1px solid #f5c6cb',
+                            borderRadius: '4px'
+                          }}>
+                            {resetMessage}
+                          </div>
+                        )}
+
+                        <button 
+                          type="submit" 
+                          className="login-button"
+                          disabled={resetStatus === 'sending'}
+                          style={{
+                            width: '100%',
+                            padding: '0.75rem',
+                            backgroundColor: resetStatus === 'sending' ? '#6c757d' : '#3B4F92',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            fontSize: '1rem',
+                            fontWeight: '500',
+                            cursor: resetStatus === 'sending' ? 'not-allowed' : 'pointer',
+                            transition: 'background-color 0.2s'
+                          }}
+                        >
+                          {resetStatus === 'sending' ? 'Resetting...' : 'Update Password'}
+                        </button>
+                      </form>
                     </div>
                   )}
                 </div>
@@ -533,4 +919,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Auth;
