@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Sidebar.css';
 
 const Sidebar = ({ 
+  role: roleProp, // 'user' | 'lawyer' (optional, will auto-detect if not provided)
   activeMenu = 'newchat', 
   recentChats = [],
   onNewChat,
@@ -12,12 +13,30 @@ const Sidebar = ({
 }) => {
   const navigate = useNavigate();
 
+  // Detect role from localStorage if not explicitly provided
+  const role = useMemo(() => {
+    if (roleProp) return roleProp;
+    try {
+      const stored = localStorage.getItem('okil_user');
+      if (!stored) return 'user';
+      const parsed = JSON.parse(stored);
+      return parsed?.role === 'lawyer' ? 'lawyer' : 'user';
+    } catch {
+      return 'user';
+    }
+  }, [roleProp]);
+
   const handleNewChat = () => {
     if (onNewChat) {
       onNewChat(); // Call parent's new chat handler
     } else {
-      navigate('/user-dashboard');
+      // Navigate to role-appropriate dashboard
+      navigate(role === 'lawyer' ? '/lawyer-dashboard' : '/user-dashboard');
     }
+  };
+
+  const handleDashboard = () => {
+    navigate('/lawyer-dashboard');
   };
 
   const handleTalkToLawyer = () => {
@@ -39,6 +58,19 @@ const Sidebar = ({
     navigate('/');
   };
 
+  // Build menu based on role
+  const menuItems = role === 'lawyer'
+    ? [
+        { key: 'dashboard', label: 'Dashboard', onClick: handleDashboard, icon: '/Dashboard.png' },
+        { key: 'newchat', label: 'New chat', onClick: handleNewChat, icon: '/NewChat.png' },
+        { key: 'library', label: 'Library', onClick: handleLibrary, icon: '/Library.png' },
+      ]
+    : [
+        { key: 'newchat', label: 'New chat', onClick: handleNewChat, icon: '/NewChat.png' },
+        { key: 'talktolawyer', label: 'Talk to lawyer', onClick: handleTalkToLawyer, icon: '/TalkToLawyer.png' },
+        { key: 'library', label: 'Library', onClick: handleLibrary, icon: '/Library.png' },
+      ];
+
   return (
     <div className="sidebar">
       {/* Logo Section */}
@@ -53,27 +85,20 @@ const Sidebar = ({
 
       {/* Menu Items */}
       <div className="sidebar-menu">
-        <div 
-          className={`sidebar-menu-item ${activeMenu === 'newchat' ? 'active' : ''}`}
-          onClick={handleNewChat}
-        >
-          <img src="/NewChat.png" alt="New chat" className="sidebar-menu-icon-img" />
-          <span className="sidebar-menu-text">New chat</span>
-        </div>
-        <div 
-          className={`sidebar-menu-item ${activeMenu === 'talktolawyer' ? 'active' : ''}`}
-          onClick={handleTalkToLawyer}
-        >
-          <img src="/TalkToLawyer.png" alt="Talk to lawyer" className="sidebar-menu-icon-img" />
-          <span className="sidebar-menu-text">Talk to lawyer</span>
-        </div>
-        <div 
-          className={`sidebar-menu-item ${activeMenu === 'library' ? 'active' : ''}`}
-          onClick={handleLibrary}
-        >
-          <img src="/Library.png" alt="Library" className="sidebar-menu-icon-img" />
-          <span className="sidebar-menu-text">Library</span>
-        </div>
+        {menuItems.map((item) => (
+          <div
+            key={item.key}
+            className={`sidebar-menu-item ${activeMenu === item.key ? 'active' : ''}`}
+            onClick={item.onClick}
+          >
+            {item.icon ? (
+              <img src={item.icon} alt={item.label} className="sidebar-menu-icon-img" />
+            ) : (
+              <span style={{ width: 20 }} />
+            )}
+            <span className="sidebar-menu-text">{item.label}</span>
+          </div>
+        ))}
       </div>
 
       {/* Recent Chats */}

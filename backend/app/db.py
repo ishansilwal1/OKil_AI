@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, declarative_base
 import os
 
@@ -21,6 +21,45 @@ def init_db():
     """Create all tables based on SQLAlchemy models. Call this after models are imported."""
     try:
         Base.metadata.create_all(bind=engine)
+        _run_lightweight_migrations()
     except Exception:
         # Don't raise at import time; let the app startup logs show the error.
         pass
+
+
+def _run_lightweight_migrations():
+    """Very small, safe migrations for dev environments.
+    - Add missing columns required by updated models.
+    This is NOT a replacement for Alembic, but helps avoid crashes when the
+    schema evolves during development.
+    """
+    try:
+        with engine.begin() as conn:
+            # Ensure queries.lawyer_id exists (nullable int, FK to users.id)
+            result = conn.execute(
+                text(
+                    """
+                    SELECT 1 FROM information_schema.columns
+                    WHERE table_schema = current_schema()
+                      AND table_name = :t
+                      AND column_name = :c
+                    """
+                ),
+                {"t": "queries", "c": "lawyer_id"},
+            )
+            if result.fetchone() is None:
+                # Add column if missing
+                conn.execute(text("ALTER TABLE queries ADD COLUMN lawyer_id INTEGER NULL"))
+                # Try to add FK constraint (ignore if it already exists)
+                try:
+                    conn.execute(text(
+                        "ALTER TABLE ONLY queries \n"
+                        "ADD CONSTRAINT fk_queries_lawyer_id_users_id \n"
+                        "FOREIGN KEY (lawyer_id) REFERENCES users(id)"
+                    ))
+                except Exception:
+                    # Ignore if the constraint already exists
+                    pass
+    except Exception as e:
+        # best-effort only; print to help diagnose in dev
+        print("[init_db] Lightweight migration skipped due to:", repr(e))

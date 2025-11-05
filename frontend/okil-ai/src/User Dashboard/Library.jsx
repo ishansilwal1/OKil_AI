@@ -6,6 +6,7 @@ import './Library.css';
 const Library = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [role, setRole] = useState('user');
   const [activeTab, setActiveTab] = useState('acts'); // 'acts', 'ordinances', 'formats'
   const [recentChats, setRecentChats] = useState([]);
   const [documents, setDocuments] = useState({
@@ -28,20 +29,19 @@ const Library = () => {
     const user = JSON.parse(localStorage.getItem('okil_user') || '{}');
 
     if (!token) {
-      navigate('/login');
+      navigate('/');
       return;
     }
+    setRole(user.role || 'user');
 
-    // Redirect lawyers to their dashboard
-    if (user.role === 'lawyer') {
-      navigate('/lawyer-dashboard');
-      return;
-    }
-
-    // Load recent chats from localStorage
-    const savedChats = localStorage.getItem('okil_recent_chats');
-    if (savedChats) {
-      setRecentChats(JSON.parse(savedChats));
+    // Load recent chats only for normal users; lawyers shouldn't see user chats here
+    if ((user.role || 'user') !== 'lawyer') {
+      const savedChats = localStorage.getItem('okil_recent_chats');
+      if (savedChats) {
+        setRecentChats(JSON.parse(savedChats));
+      }
+    } else {
+      setRecentChats([]);
     }
 
     setLoading(false);
@@ -63,11 +63,12 @@ const Library = () => {
   };
 
   const handleNewChat = () => {
-    navigate('/user-dashboard');
+    navigate(role === 'lawyer' ? '/lawyer-dashboard' : '/user-dashboard');
   };
 
   const handleLoadChat = (chatId) => {
-    navigate('/user-dashboard', { state: { loadChatId: chatId } });
+    const target = role === 'lawyer' ? '/lawyer-dashboard' : '/user-dashboard';
+    navigate(target, { state: { loadChatId: chatId } });
   };
 
   const getActiveDocuments = () => {
@@ -83,6 +84,7 @@ const Library = () => {
       <div className="library-page">
         {/* Sidebar */}
         <Sidebar 
+          role={role}
           activeMenu="library" 
           recentChats={recentChats}
           onNewChat={handleNewChat}

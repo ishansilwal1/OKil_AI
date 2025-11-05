@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, Text, Date, Time
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from .db import Base
@@ -47,3 +47,42 @@ class ResetToken(Base):
     
     # Relationship
     user = relationship("User", back_populates="reset_tokens")
+
+
+class Appointment(Base):
+    __tablename__ = 'appointments'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    lawyer_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    # Match existing DB columns
+    date = Column(Date, nullable=True)
+    time = Column(Time, nullable=True)
+    description = Column(Text, nullable=True)
+    status = Column(String, default='pending')  # pending, approved, rejected, cancelled, completed
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class Query(Base):
+    __tablename__ = 'queries'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    lawyer_id = Column(Integer, ForeignKey('users.id'), nullable=True)  # optional assignment
+    # Match existing DB columns
+    subject = Column(String, nullable=False)
+    description = Column(Text, nullable=False)
+    status = Column(String, default='open')  # open, answered, closed
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class AvailabilitySlot(Base):
+    __tablename__ = 'availability_slots'
+
+    id = Column(Integer, primary_key=True, index=True)
+    lawyer_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    start_at = Column(DateTime(timezone=True), nullable=False)
+    end_at = Column(DateTime(timezone=True), nullable=False)
+    is_booked = Column(Boolean, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

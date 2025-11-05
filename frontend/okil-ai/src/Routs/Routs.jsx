@@ -3,6 +3,8 @@ import { Routes, Route } from 'react-router-dom';
 import Auth from '../Auth/Auth';
 import UserDashboard from '../User Dashboard/UserDashboard';
 import LawyerDashboard from '../Lawyer Dashboard/LawyerDashboard';
+import AppointmentDetails from '../Lawyer Dashboard/AppointmentDetails';
+import QueryDetails from '../Lawyer Dashboard/QueryDetails';
 import TalkToLawyer from '../User Dashboard/TalkToLawyer';
 import Library from '../User Dashboard/Library';
 
@@ -19,6 +21,8 @@ export default function Routs() {
       <Route path="/talk-to-lawyer" element={<TalkToLawyer />} />
       <Route path="/library" element={<Library />} />
       <Route path="/lawyer-dashboard" element={<LawyerDashboard />} />
+      <Route path="/lawyer/appointments/:id" element={<AppointmentDetails />} />
+      <Route path="/lawyer/queries/:id" element={<QueryDetails />} />
     </Routes>
   );
 }

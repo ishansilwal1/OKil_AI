@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .auth import router as auth_router
+from .interactions import router as interactions_router
 from . import models
 from .db import init_db
 
@@ -11,9 +12,11 @@ app = FastAPI()
 
 # Allow the frontend dev server to access the API during development.
 # In production, narrow this to specific origins.
+# During development, allow all origins to avoid CORS issues when opening the
+# frontend via file:// or different hosts/ports. Consider restricting this in production.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -31,6 +34,7 @@ def read_item(item_id: int, q: Union[str, None] = None):
 
 
 app.include_router(auth_router, prefix="/auth")
+app.include_router(interactions_router)
 
 
 @app.on_event("startup")

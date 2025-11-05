@@ -9,6 +9,10 @@ const TalkToLawyer = () => {
   const [recentChats, setRecentChats] = useState([]);
   const [currentView, setCurrentView] = useState('list'); // 'list', 'appointment', 'query'
   const [selectedLawyer, setSelectedLawyer] = useState(null);
+  const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+  const [availability, setAvailability] = useState([]); // list of slots
+  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedSlotId, setSelectedSlotId] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -18,36 +22,7 @@ const TalkToLawyer = () => {
     queryDetail: '',
     issue: ''
   });
-  const [lawyers, setLawyers] = useState([
-    {
-      id: 1,
-      name: '',
-      barCouncilNumber: '',
-      expertise: '',
-      mailAddress: ''
-    },
-    {
-      id: 2,
-      name: '',
-      barCouncilNumber: '',
-      expertise: '',
-      mailAddress: ''
-    },
-    {
-      id: 3,
-      name: '',
-      barCouncilNumber: '',
-      expertise: '',
-      mailAddress: ''
-    },
-    {
-      id: 4,
-      name: '',
-      barCouncilNumber: '',
-      expertise: '',
-      mailAddress: ''
-    }
-  ]);
+  const [lawyers, setLawyers] = useState([]);
 
   useEffect(() => {
     // Check if user is logged in
@@ -55,7 +30,8 @@ const TalkToLawyer = () => {
     const user = JSON.parse(localStorage.getItem('okil_user') || '{}');
 
     if (!token) {
-      navigate('/login');
+      // App uses Auth at '/'; keep it consistent
+      navigate('/');
       return;
     }
 
@@ -71,15 +47,55 @@ const TalkToLawyer = () => {
       setRecentChats(JSON.parse(savedChats));
     }
 
-    setLoading(false);
-    
-    // TODO: Fetch lawyers list from backend
-    // fetchLawyers();
+    // Fetch lawyers list from backend
+    (async function fetchLawyers() {
+      try {
+        const res = await fetch(`${API_BASE}/lawyers`);
+        if (!res.ok) throw new Error('Failed to load lawyers');
+        const data = await res.json();
+        setLawyers(Array.isArray(data) ? data : []);
+      } catch (e) {
+        console.error(e);
+        setLawyers([]);
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [navigate]);
 
   const handleTalkToLawyerClick = (lawyer) => {
     setSelectedLawyer(lawyer);
     setCurrentView('appointment');
+    fetchAvailability(lawyer.id);
+  };
+
+  const toLocalDate = (iso) => {
+    const d = new Date(iso);
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  };
+
+  const fetchAvailability = async (lawyerId) => {
+    try {
+      const res = await fetch(`${API_BASE}/lawyers/${lawyerId}/availability`, {
+        headers: { 'Cache-Control': 'no-store' }
+      });
+      const data = await res.json();
+      const slots = Array.isArray(data) ? data : [];
+      setAvailability(slots);
+      if (slots.length > 0) {
+        const firstDate = toLocalDate(slots[0].start_at);
+        setSelectedDate(firstDate);
+        setSelectedSlotId(slots[0].id);
+      } else {
+        setSelectedDate('');
+        setSelectedSlotId(null);
+      }
+    } catch (e) {
+      setAvailability([]);
+      setSelectedDate('');
+      setSelectedSlotId(null);
+    }
   };
 
   const handleLeaveQuery = (lawyer) => {
@@ -105,36 +121,88 @@ const TalkToLawyer = () => {
 
   const handleBookAppointment = (e) => {
     e.preventDefault();
-    // TODO: Submit appointment booking to backend
-    console.log('Booking appointment:', { ...formData, lawyer: selectedLawyer });
-    alert('Appointment request sent! A lawyer will contact you shortly.');
-    setCurrentView('list');
-    setFormData({
-      name: '',
-      email: '',
-      preferredDate: '',
-      preferredTime: '',
-      query: '',
-      queryDetail: '',
-      issue: ''
-    });
+    if (!selectedLawyer) return;
+
+    const token = localStorage.getItem('okil_token');
+    const { issue } = formData;
+
+    (async () => {
+      try {
+        const res = await fetch(`${API_BASE}/appointments`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+          },
+          body: JSON.stringify({
+            lawyer_id: selectedLawyer.id,
+            slot_id: selectedSlotId || undefined,
+            message: issue || undefined,
+          })
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.detail || 'Failed to create appointment');
+        }
+        await res.json();
+        alert('Appointment request sent! A lawyer will contact you shortly.');
+        setCurrentView('list');
+        setFormData({
+          name: '',
+          email: '',
+          preferredDate: '',
+          preferredTime: '',
+          query: '',
+          queryDetail: '',
+          issue: ''
+        });
+        setSelectedSlotId(null);
+      } catch (error) {
+        alert(error.message || 'Failed to book appointment');
+      }
+    })();
   };
 
   const handleSubmitQuery = (e) => {
     e.preventDefault();
-    // TODO: Submit query to backend
-    console.log('Submitting query:', { ...formData, lawyer: selectedLawyer });
-    alert('Query submitted! A lawyer will respond via email.');
-    setCurrentView('list');
-    setFormData({
-      name: '',
-      email: '',
-      preferredDate: '',
-      preferredTime: '',
-      query: '',
-      queryDetail: '',
-      issue: ''
-    });
+    const token = localStorage.getItem('okil_token');
+    const { query, queryDetail } = formData;
+
+    (async () => {
+      try {
+        const res = await fetch(`${API_BASE}/queries`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+          },
+          body: JSON.stringify({
+            title: query,
+            content: queryDetail,
+            lawyer_id: selectedLawyer?.id || undefined,
+          })
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.detail || 'Failed to submit query');
+        }
+        await res.json();
+        alert('Query submitted! A lawyer will respond via email.');
+        setCurrentView('list');
+        setFormData({
+          name: '',
+          email: '',
+          preferredDate: '',
+          preferredTime: '',
+          query: '',
+          queryDetail: '',
+          issue: ''
+        });
+      } catch (error) {
+        console.error('Submit query error:', error);
+        alert(error.message || 'Failed to submit query');
+      }
+    })();
   };
 
   const handleBackToList = () => {
@@ -176,15 +244,15 @@ const TalkToLawyer = () => {
                     </div>
                     <div className="lawyer-field">
                       <span className="lawyer-label">BAR council number:</span>
-                      <span className="lawyer-value">{lawyer.barCouncilNumber || ''}</span>
+                      <span className="lawyer-value">{lawyer.barCouncilNumber || '—'}</span>
                     </div>
                     <div className="lawyer-field">
                       <span className="lawyer-label">Expertise:</span>
-                      <span className="lawyer-value">{lawyer.expertise || ''}</span>
+                      <span className="lawyer-value">{lawyer.expertise || '—'}</span>
                     </div>
                     <div className="lawyer-field">
                       <span className="lawyer-label">Mail address:</span>
-                      <span className="lawyer-value">{lawyer.mailAddress || ''}</span>
+                      <span className="lawyer-value">{lawyer.email || lawyer.mailAddress || ''}</span>
                     </div>
                   </div>
                   <div className="lawyer-actions">
@@ -250,32 +318,69 @@ const TalkToLawyer = () => {
 
                 <div className="form-group">
                   <label className="form-label">
-                    <span className="required">*</span> Your Preffered Date
+                    <span className="required">*</span> Select Date
                   </label>
-                  <input
-                    type="text"
-                    name="preferredDate"
-                    value={formData.preferredDate}
-                    onChange={handleInputChange}
-                    placeholder="select your preffered date"
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <select
                     className="form-input"
+                    value={selectedDate}
+                    onChange={(e) => {
+                      const d = e.target.value;
+                      setSelectedDate(d);
+                      const daySlots = availability.filter(s => toLocalDate(s.start_at) === d);
+                      setSelectedSlotId(daySlots[0]?.id || null);
+                    }}
                     required
-                  />
+                  >
+                    <option value="" disabled>Select a date</option>
+                    {[...new Set(availability.map(s => {
+                        const d = new Date(s.start_at);
+                        const pad = (n) => String(n).padStart(2, '0');
+                        return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+                      }))]
+                      .map((d) => (
+                        <option key={d} value={d}>{d}</option>
+                      ))}
+                  </select>
+                  <button type="button" className="submit-btn" onClick={() => selectedLawyer && fetchAvailability(selectedLawyer.id)}>Refresh</button>
+                  </div>
+                  {availability.length === 0 && (
+                    <small style={{ color: '#888' }}>No available dates from this lawyer right now.</small>
+                  )}
                 </div>
 
                 <div className="form-group">
                   <label className="form-label">
-                    <span className="required">*</span> Your Preffered Time
+                    <span className="required">*</span> Select Time
                   </label>
-                  <input
-                    type="text"
-                    name="preferredTime"
-                    value={formData.preferredTime}
-                    onChange={handleInputChange}
-                    placeholder="select your preffered time"
+                  <select
                     className="form-input"
+                    value={selectedSlotId || ''}
+                    onChange={(e) => setSelectedSlotId(parseInt(e.target.value, 10))}
                     required
-                  />
+                  >
+                    <option value="" disabled>Select a time</option>
+                    {availability
+                      .filter(s => {
+                        const d = new Date(s.start_at);
+                        const pad = (n) => String(n).padStart(2, '0');
+                        const ds = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+                        return ds === selectedDate;
+                      })
+                      .map(s => {
+                        const t = new Date(s.start_at);
+                        const label = t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        return <option key={s.id} value={s.id}>{label}</option>
+                      })}
+                  </select>
+                  {selectedDate && availability.filter(s => {
+                      const d = new Date(s.start_at);
+                      const pad = (n) => String(n).padStart(2, '0');
+                      const ds = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+                      return ds === selectedDate;
+                    }).length === 0 && (
+                    <small style={{ color: '#888' }}>No times for the selected date.</small>
+                  )}
                 </div>
 
                 <div className="form-group">
@@ -294,7 +399,7 @@ const TalkToLawyer = () => {
                 </div>
 
                 <div className="form-actions">
-                  <button type="submit" className="submit-btn">Book Appointment</button>
+                  <button type="submit" className="submit-btn" disabled={!selectedSlotId}>Book Appointment</button>
                   <button type="button" onClick={handleBackToList} className="back-btn">Back</button>
                 </div>
               </form>
