@@ -1,6 +1,10 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Auth from '../Auth/Auth';
+import UserDashboard from '../User Dashboard/UserDashboard';
+import LawyerDashboard from '../Lawyer Dashboard/LawyerDashboard';
+import TalkToLawyer from '../User Dashboard/TalkToLawyer';
+import Library from '../User Dashboard/Library';
 
 export default function Routs() {
   return (
@@ -11,6 +15,10 @@ export default function Routs() {
       <Route path="/register/lawyer" element={<Auth />} />
       <Route path="/forgot-password" element={<Auth />} />
       <Route path="/reset-password" element={<Auth />} />
+      <Route path="/user-dashboard" element={<UserDashboard />} />
+      <Route path="/talk-to-lawyer" element={<TalkToLawyer />} />
+      <Route path="/library" element={<Library />} />
+      <Route path="/lawyer-dashboard" element={<LawyerDashboard />} />
     </Routes>
   );
 }

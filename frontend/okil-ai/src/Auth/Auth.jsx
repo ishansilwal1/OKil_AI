@@ -125,15 +125,38 @@ const Auth = () => {
         const data = await res.json();
         // store token
         if (data.access_token) {
-          localStorage.setItem('okil_token', data.access_token);
+        localStorage.setItem('okil_token', data.access_token);
+        
+        // Get user info to determine role
+        const userRes = await fetch(`${API_BASE}/auth/me`, {
+          headers: {
+            'Authorization': `Bearer ${data.access_token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (userRes.ok) {
+          const userInfo = await userRes.json();
+          
+          // Store user info
+          localStorage.setItem('okil_user', JSON.stringify(userInfo));
+          
+          // Redirect based on role
+          if (userInfo.role === 'lawyer') {
+            navigate('/lawyer-dashboard');
+          } else {
+            navigate('/user-dashboard');
+          }
+        } else {
+          // Fallback if can't get user info
+          navigate('/user-dashboard');
         }
-        setLoginLoading(false);
-        // navigate to home or dashboard
-        navigate('/');
-      } catch (err) {
-        setLoginLoading(false);
-        setLoginError(err.message || 'Login failed');
       }
+      setLoginLoading(false);
+    } catch (err) {
+      setLoginLoading(false);
+      setLoginError(err.message || 'Login failed');
+    }
     })();
   };
 
@@ -300,14 +323,15 @@ const Auth = () => {
   };
 
   return (
-    <div className="login-page" style={{
-      backgroundImage: `url('/Background.png')`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat',
-      backgroundAttachment: 'fixed'
-    }}>
-      <div className="header">
+    <div className="auth-wrapper">
+      <div className="login-page" style={{
+        backgroundImage: `url('/Background.png')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed'
+      }}>
+        <div className="header">
         <div className="logo-container">
           <img src="/logo.png" alt="OKIL AI" className="logo" />
           <span className="logo-text">OKIL AI</span>
@@ -915,6 +939,7 @@ const Auth = () => {
           )}
         </div>
       </div>
+    </div>
     </div>
   );
 };
