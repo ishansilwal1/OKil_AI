@@ -1,0 +1,505 @@
+/* ====== Base Layout ====== */
+.talk-to-lawyer-wrapper .talk-to-lawyer-page {
+  display: flex;
+  height: 100vh;
+  background-color: #f5f5f5;
+  font-family: 'Inter', sans-serif;
+  overflow: hidden;
+}
+
+/* ====== Sidebar ====== */
+.talk-to-lawyer-wrapper .lawyer-sidebar {
+  width: 240px;
+  background-color: #153e90;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.3s ease;
+}
+
+/* ====== Logo Section ====== */
+.talk-to-lawyer-wrapper .lawyer-sidebar-header {
+  padding: 24px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.talk-to-lawyer-wrapper .lawyer-logo-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.talk-to-lawyer-wrapper .lawyer-logo-box {
+  width: 38px;
+  height: 38px;
+  border-radius: 6px;
+  background-color: #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.talk-to-lawyer-wrapper .lawyer-logo-image {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.talk-to-lawyer-wrapper .lawyer-logo-text {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* ====== Menu ====== */
+.talk-to-lawyer-wrapper .lawyer-menu {
+  padding: 20px 0;
+}
+
+.talk-to-lawyer-wrapper .lawyer-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 24px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.talk-to-lawyer-wrapper .lawyer-menu-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.talk-to-lawyer-wrapper .lawyer-menu-item.active {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.talk-to-lawyer-wrapper .lawyer-menu-icon-img {
+  width: 20px;
+  height: 20px;
+}
+
+.talk-to-lawyer-wrapper .lawyer-menu-text {
+  font-size: 15px;
+}
+
+/* ====== Recent Chats ====== */
+.talk-to-lawyer-wrapper .lawyer-recent-chats {
+  padding: 0 24px;
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+.talk-to-lawyer-wrapper .lawyer-recent-chats h3 {
+  font-size: 13px;
+  font-weight: 500;
+  color: #cbd3e2;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.talk-to-lawyer-wrapper .lawyer-no-chats {
+  font-size: 13px;
+  color: #cbd3e2;
+  padding-left: 5px;
+}
+
+.talk-to-lawyer-wrapper .lawyer-chat-item {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.talk-to-lawyer-wrapper .lawyer-chat-item:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+.talk-to-lawyer-wrapper .lawyer-chat-title {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.talk-to-lawyer-wrapper .lawyer-chat-date {
+  font-size: 12px;
+  color: #aab7d1;
+  margin-top: 4px;
+}
+
+/* ====== Bottom Menu ====== */
+.talk-to-lawyer-wrapper .lawyer-bottom-menu {
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 14px 0;
+}
+
+.talk-to-lawyer-wrapper .lawyer-bottom-menu .lawyer-menu-item {
+  padding: 10px 24px;
+}
+
+/* ====== Main Content ====== */
+.talk-to-lawyer-wrapper .lawyer-main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: #f5f5f5;
+  overflow-y: auto;
+  padding: 40px 60px;
+}
+
+.talk-to-lawyer-wrapper .lawyer-page-header {
+  margin-bottom: 40px;
+}
+
+.talk-to-lawyer-wrapper .lawyer-page-title {
+  font-size: 32px;
+  font-weight: 600;
+  color: #0d9488;
+  margin: 0;
+}
+
+/* ====== Lawyers Grid ====== */
+.talk-to-lawyer-wrapper .lawyers-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 30px;
+  max-width: 1200px;
+}
+
+/* ====== Lawyer Card ====== */
+.talk-to-lawyer-wrapper .lawyer-card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.talk-to-lawyer-wrapper .lawyer-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.talk-to-lawyer-wrapper .lawyer-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.talk-to-lawyer-wrapper .lawyer-label {
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.talk-to-lawyer-wrapper .lawyer-value {
+  font-size: 15px;
+  color: #111827;
+  min-height: 20px;
+}
+
+/* ====== Lawyer Actions ====== */
+.talk-to-lawyer-wrapper .lawyer-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.talk-to-lawyer-wrapper .lawyer-talk-btn,
+.talk-to-lawyer-wrapper .lawyer-query-btn {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.talk-to-lawyer-wrapper .lawyer-talk-btn {
+  background-color: #0d9488;
+  color: #ffffff;
+}
+
+.talk-to-lawyer-wrapper .lawyer-talk-btn:hover {
+  background-color: #0f766e;
+}
+
+.talk-to-lawyer-wrapper .lawyer-query-btn {
+  background-color: #153e90;
+  color: #ffffff;
+}
+
+.talk-to-lawyer-wrapper .lawyer-query-btn:hover {
+  background-color: #0f2d68;
+}
+
+/* ====== Loading ====== */
+.talk-to-lawyer-wrapper .lawyer-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  color: #153e90;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+/* ====== Appointment View ====== */
+.talk-to-lawyer-wrapper .appointment-view,
+.talk-to-lawyer-wrapper .query-view {
+  width: 100%;
+  max-width: 100%;
+}
+
+.talk-to-lawyer-wrapper .appointment-header,
+.talk-to-lawyer-wrapper .query-header {
+  margin-bottom: 30px;
+}
+
+.talk-to-lawyer-wrapper .appointment-title,
+.talk-to-lawyer-wrapper .query-title {
+  font-size: 28px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 8px 0;
+}
+
+.talk-to-lawyer-wrapper .appointment-subtitle,
+.talk-to-lawyer-wrapper .query-subtitle {
+  font-size: 15px;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* ====== Form Container ====== */
+.talk-to-lawyer-wrapper .appointment-form-container,
+.talk-to-lawyer-wrapper .query-form-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20px 0;
+}
+
+.talk-to-lawyer-wrapper .appointment-form,
+.talk-to-lawyer-wrapper .query-form {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 600px;
+}
+
+.talk-to-lawyer-wrapper .query-form {
+  border: 2px solid #0d9488;
+}
+
+.talk-to-lawyer-wrapper .form-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #0d9488;
+  margin: 0 0 24px 0;
+  text-align: center;
+}
+
+/* ====== Form Fields ====== */
+.talk-to-lawyer-wrapper .form-group {
+  margin-bottom: 20px;
+}
+
+.talk-to-lawyer-wrapper .form-label {
+  display: block;
+  font-size: 14px;
+  color: #374151;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.talk-to-lawyer-wrapper .required {
+  color: #ef4444;
+  margin-right: 4px;
+}
+
+.talk-to-lawyer-wrapper .form-input,
+.talk-to-lawyer-wrapper .form-textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #111827;
+  font-family: 'Inter', sans-serif;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.talk-to-lawyer-wrapper .form-input:focus,
+.talk-to-lawyer-wrapper .form-textarea:focus {
+  outline: none;
+  border-color: #0d9488;
+}
+
+.talk-to-lawyer-wrapper .form-input::placeholder,
+.talk-to-lawyer-wrapper .form-textarea::placeholder {
+  color: #9ca3af;
+}
+
+.talk-to-lawyer-wrapper .form-textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* ====== Form Actions ====== */
+.talk-to-lawyer-wrapper .form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.talk-to-lawyer-wrapper .submit-btn,
+.talk-to-lawyer-wrapper .back-btn {
+  flex: 1;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.talk-to-lawyer-wrapper .submit-btn {
+  background-color: #0d9488;
+  color: #ffffff;
+}
+
+.talk-to-lawyer-wrapper .submit-btn:hover {
+  background-color: #0f766e;
+}
+
+.talk-to-lawyer-wrapper .back-btn {
+  background-color: #e5e7eb;
+  color: #374151;
+}
+
+.talk-to-lawyer-wrapper .back-btn:hover {
+  background-color: #d1d5db;
+}
+
+/* ====== Responsive Design ====== */
+
+/* For tablets and smaller laptops */
+@media (max-width: 1024px) {
+  .lawyer-sidebar {
+    width: 200px;
+  }
+
+  .lawyer-main-content {
+    padding: 30px 40px;
+  }
+
+  .lawyers-grid {
+    gap: 20px;
+  }
+}
+
+/* For tablets */
+@media (max-width: 768px) {
+  .talk-to-lawyer-page {
+    flex-direction: column;
+  }
+
+  .lawyer-sidebar {
+    width: 100%;
+    height: 60px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px;
+  }
+
+  .lawyer-sidebar-header {
+    border: none;
+    padding: 0;
+  }
+
+  .lawyer-logo-text {
+    display: none;
+  }
+
+  .lawyer-menu,
+  .lawyer-recent-chats,
+  .lawyer-bottom-menu {
+    display: none;
+  }
+
+  .lawyer-main-content {
+    flex: 1;
+    height: calc(100vh - 60px);
+    padding: 20px;
+  }
+
+  .lawyer-page-title,
+  .appointment-title,
+  .query-title {
+    font-size: 24px;
+  }
+
+  .lawyers-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .appointment-form,
+  .query-form {
+    padding: 24px;
+  }
+}
+
+/* For mobile devices */
+@media (max-width: 480px) {
+  .lawyer-main-content {
+    padding: 15px;
+  }
+
+  .lawyer-page-header,
+  .appointment-header,
+  .query-header {
+    margin-bottom: 20px;
+  }
+
+  .lawyer-page-title,
+  .appointment-title,
+  .query-title {
+    font-size: 20px;
+  }
+
+  .lawyer-card,
+  .appointment-form,
+  .query-form {
+    padding: 18px;
+  }
+
+  .lawyer-talk-btn,
+  .lawyer-query-btn {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .submit-btn,
+  .back-btn {
+    width: 100%;
+  }
+}
