@@ -1,5 +1,4 @@
-# Environment variables (contains secrets)
-.env
+# Okil AI - Main Project .gitignore
 
 # Python
 __pycache__/
@@ -7,9 +6,55 @@ __pycache__/
 *$py.class
 *.so
 .Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environments
 venv/
+.venv/
 env/
+.env/
 ENV/
+env.bak/
+venv.bak/
+
+# Environment Variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE and Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
 # Node.js
 node_modules/
@@ -20,21 +65,48 @@ yarn-error.log*
 # Database
 *.db
 *.sqlite3
-*.json
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Build outputs
-build/
-dist/
 
 # Logs
 *.log
+logs/
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# Project-specific temporary files
+check.txt
+plan.txt
+*.md.backup
+
+# Documentation drafts (keep final versions)
+CLEANUP_COMPLETE.md
+RAG_SYSTEM_REORGANIZATION.md
+SYSTEM_CLEANUP_COMPLETE.md
+
+# ML/AI Artifacts (regenerate locally)
+# Embeddings and vector databases
+ml/embeddings/chroma_db_v2/
+ml/embeddings/*.npy
+ml/embeddings/*.index
+ml/embeddings/*.json
+ml/embeddings/chroma/
+
+# Large model files
+ml/models/base/
+ml/models/merged/
+
+# Generated datasets
+ml/datasets/*.json
+
+# Processed chunks (can be regenerated)
+ml/processed/chunks/*.jsonl
+ml/processed/chunks/*.json
