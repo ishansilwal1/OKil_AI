@@ -86,3 +86,22 @@ Thumbs.db
 CLEANUP_COMPLETE.md
 RAG_SYSTEM_REORGANIZATION.md
 SYSTEM_CLEANUP_COMPLETE.md
+
+# ML/AI Artifacts (regenerate locally)
+# Embeddings and vector databases
+ml/embeddings/chroma_db_v2/
+ml/embeddings/*.npy
+ml/embeddings/*.index
+ml/embeddings/*.json
+ml/embeddings/chroma/
+
+# Large model files
+ml/models/base/
+ml/models/merged/
+
+# Generated datasets
+ml/datasets/*.json
+
+# Processed chunks (can be regenerated)
+ml/processed/chunks/*.jsonl
+ml/processed/chunks/*.json
