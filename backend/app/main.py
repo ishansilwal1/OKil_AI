@@ -4,10 +4,15 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .auth import router as auth_router
+from .api.v1.legal_chat import router as legal_chat_router
 from . import models
 from .db import init_db
 
-app = FastAPI()
+app = FastAPI(
+    title="OKIL AI Legal Assistant API",
+    description="AI-powered legal question answering system for Nepali law",
+    version="1.0.0"
+)
 
 # Allow the frontend dev server to access the API during development.
 # In production, narrow this to specific origins.
@@ -22,7 +27,15 @@ app.add_middleware(
 
 @app.get("/")
 def read_root():
-    return {"Hello": "World"}
+    return {
+        "message": "OKIL AI Legal Assistant API",
+        "version": "1.0.0",
+        "endpoints": {
+            "docs": "/docs",
+            "auth": "/auth",
+            "legal_chat": "/api/v1/legal"
+        }
+    }
 
 
 @app.get("/items/{item_id}")
@@ -30,7 +43,9 @@ def read_item(item_id: int, q: Union[str, None] = None):
     return {"item_id": item_id, "q": q}
 
 
-app.include_router(auth_router, prefix="/auth")
+# Include routers
+app.include_router(auth_router, prefix="/auth", tags=["Authentication"])
+app.include_router(legal_chat_router, prefix="/api/v1/legal", tags=["Legal Chat"])
 
 
 @app.on_event("startup")
