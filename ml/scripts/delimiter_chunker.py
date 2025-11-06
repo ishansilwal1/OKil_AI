@@ -200,32 +200,32 @@ def main():
     # Define documents to process with their Nepali act names
     documents_config = [
         {
-            'file': 'Civil_code.txt',
+            'file': 'civilcode.txt',
             'act_name_ne': 'नागरिक संहिता, २०७४',
             'act_name_en': 'Civil Code, 2074'
         },
         {
-            'file': 'Constitution of Nepal.txt',
+            'file': 'Constitution_Nepali.txt',
             'act_name_ne': 'नेपालको संविधान, २०७२',
             'act_name_en': 'Constitution of Nepal, 2072'
         },
         {
-            'file': 'Constitution_english.txt',
+            'file': 'constitution_english.txt',
             'act_name_ne': 'Constitution of Nepal, 2072',
             'act_name_en': 'Constitution of Nepal, 2072'
         },
         {
-            'file': 'financial_act_.txt',
+            'file': 'Financial_Act.txt',
             'act_name_ne': 'आर्थिक ऐन, २०८२',
             'act_name_en': 'Financial Act, 2082'
         },
         {
-            'file': 'land_use_act_.txt',
+            'file': 'Land_use_act.txt',
             'act_name_ne': 'भूमि उपयोग ऐन, २०७६',
             'act_name_en': 'Land Use Act, 2076'
         },
         {
-            'file': 'property_tax_.txt',
+            'file': 'Property_Tax.txt',
             'act_name_ne': 'सम्पत्ति कर ऐन, २०७९',
             'act_name_en': 'Property Tax Act, 2079'
         }
