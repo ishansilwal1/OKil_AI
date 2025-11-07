@@ -7,6 +7,7 @@ import AppointmentDetails from '../Lawyer Dashboard/AppointmentDetails';
 import QueryDetails from '../Lawyer Dashboard/QueryDetails';
 import TalkToLawyer from '../User Dashboard/TalkToLawyer';
 import Library from '../User Dashboard/Library';
+import UserAppointmentDetails from '../User Dashboard/UserAppointmentDetails';
 
 export default function Routs() {
   return (
@@ -23,6 +24,7 @@ export default function Routs() {
       <Route path="/lawyer-dashboard" element={<LawyerDashboard />} />
       <Route path="/lawyer/appointments/:id" element={<AppointmentDetails />} />
       <Route path="/lawyer/queries/:id" element={<QueryDetails />} />
+      <Route path="/user/appointments/:id" element={<UserAppointmentDetails />} />
     </Routes>
   );
 }

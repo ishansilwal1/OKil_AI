@@ -6,7 +6,10 @@
   flex: 1;
   padding: 24px;
   background: #f5f9fb;
-  min-height: 95vh;
+  min-height: 100vh;
+  height: 100vh;
+  overflow-y: auto;
+  margin-left: 240px; /* fixed sidebar width */
 }
 .details-container {
   max-width: 980px;
@@ -78,4 +81,14 @@
   font-weight: 700;
   color: #333;
   margin: 12px 0 6px;
+}
+
+/* Responsive: when sidebar becomes a top bar */
+@media (max-width: 768px) {
+  .details-main {
+    margin-left: 0;
+    margin-top: 60px; /* push below fixed top bar */
+    height: calc(100vh - 60px);
+    min-height: calc(100vh - 60px);
+  }
 }

@@ -8,11 +8,14 @@ const TalkToLawyer = () => {
   const [loading, setLoading] = useState(true);
   const [recentChats, setRecentChats] = useState([]);
   const [currentView, setCurrentView] = useState('list'); // 'list', 'appointment', 'query'
+  const [recordsView, setRecordsView] = useState(null); // null | 'appointments' | 'queries'
   const [selectedLawyer, setSelectedLawyer] = useState(null);
   const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
   const [availability, setAvailability] = useState([]); // list of slots
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedSlotId, setSelectedSlotId] = useState(null);
+  const [myAppointments, setMyAppointments] = useState([]);
+  const [apptLoading, setApptLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -23,6 +26,8 @@ const TalkToLawyer = () => {
     issue: ''
   });
   const [lawyers, setLawyers] = useState([]);
+  const [myQueries, setMyQueries] = useState([]);
+  const [qLoading, setQLoading] = useState(false);
 
   useEffect(() => {
     // Check if user is logged in
@@ -61,6 +66,11 @@ const TalkToLawyer = () => {
         setLoading(false);
       }
     })();
+
+    // Fetch my appointments
+    fetchMyAppointments();
+    // Fetch my queries
+    fetchMyQueries();
   }, [navigate]);
 
   const handleTalkToLawyerClick = (lawyer) => {
@@ -101,6 +111,36 @@ const TalkToLawyer = () => {
   const handleLeaveQuery = (lawyer) => {
     setSelectedLawyer(lawyer);
     setCurrentView('query');
+  };
+
+  const fetchMyAppointments = async () => {
+    const token = localStorage.getItem('okil_token');
+    if (!token) return;
+    setApptLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/appointments`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const data = await res.json();
+      setMyAppointments(Array.isArray(data) ? data : []);
+    } catch (e) {
+      setMyAppointments([]);
+    } finally {
+      setApptLoading(false);
+    }
+  };
+
+  const fetchMyQueries = async () => {
+    const token = localStorage.getItem('okil_token');
+    if (!token) return;
+    setQLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/queries`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const data = await res.json();
+      setMyQueries(Array.isArray(data) ? data : []);
+    } catch (e) {
+      setMyQueries([]);
+    } finally {
+      setQLoading(false);
+    }
   };
 
   const handleNewChat = () => {
@@ -229,11 +269,81 @@ const TalkToLawyer = () => {
       <div className="lawyer-main-content">
         {currentView === 'list' && (
           <>
-            <div className="lawyer-page-header">
-              <h1 className="lawyer-page-title">Talk To Lawyer</h1>
+            <div className="lawyer-page-header" style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:12 }}>
+              <h1 className="lawyer-page-title" style={{ margin:0 }}>Talk To Lawyer</h1>
+              <div className="record-toggle">
+                <button className={`record-btn ${recordsView==='appointments' ? 'active' : ''}`} onClick={()=> setRecordsView('appointments')}>My Appointments</button>
+                <button className={`record-btn ${recordsView==='queries' ? 'active' : ''}`} onClick={()=> setRecordsView('queries')}>My Queries</button>
+                {recordsView && (
+                  <button className="record-btn secondary" onClick={()=> setRecordsView(null)}>Close</button>
+                )}
+              </div>
             </div>
 
-            {/* Lawyers Grid */}
+            {/* Removed default My Appointments summary to only show when toggled */}
+
+            {/* Records Panels */}
+            {recordsView === 'appointments' && (
+              <div>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+                  <h2 style={{ fontSize:18, margin:0 }}>My Appointments</h2>
+                  <button className="refresh-btn" onClick={fetchMyAppointments}>Refresh</button>
+                </div>
+                {apptLoading && <div style={{ fontSize:13, color:'#666' }}>Loading appointments...</div>}
+                {!apptLoading && myAppointments.length === 0 && (
+                  <div style={{ fontSize:13, color:'#666' }}>You have no appointments yet.</div>
+                )}
+                {!apptLoading && myAppointments.length > 0 && (
+                  <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                    {myAppointments.map(a => {
+                      const dateStr = a.date ? new Date(a.date).toLocaleDateString() : '—';
+                      const timeStr = a.time || '';
+                      return (
+                        <div key={a.id} className="user-appt-row">
+                          <div className="user-appt-main">
+                            <span className="user-appt-title">Lawyer #{a.lawyer_id}</span>
+                            <span className="user-appt-meta">{dateStr} {timeStr}</span>
+                          </div>
+                          <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+                            <span className={`user-appt-status status-${a.status}`}>{a.status}</span>
+                            <button className="back-btn" onClick={()=> navigate(`/user/appointments/${a.id}`)}>View</button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {recordsView === 'queries' && (
+              <div>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+                  <h2 style={{ fontSize:18, margin:0 }}>My Queries</h2>
+                  <button className="refresh-btn" onClick={fetchMyQueries}>Refresh</button>
+                </div>
+                {qLoading && <div style={{ fontSize:13, color:'#666' }}>Loading queries...</div>}
+                {!qLoading && myQueries.length === 0 && (
+                  <div style={{ fontSize:13, color:'#666' }}>You have no queries yet.</div>
+                )}
+                {!qLoading && myQueries.length > 0 && (
+                  <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                    {myQueries.map(q => (
+                      <div key={q.id} className="user-query-row">
+                        <div className="user-query-main">
+                          <span className="user-query-title">{q.subject || `Query #${q.id}`}</span>
+                          <span className="user-query-meta">to Lawyer #{q.lawyer_id || '—'}</span>
+                        </div>
+                        <span className={`user-query-status q-${q.status}`}>{q.status}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Lawyers Grid (only when not viewing records) */}
+            {recordsView === null && (
             <div className="lawyers-grid">
               {lawyers.map((lawyer) => (
                 <div key={lawyer.id} className="lawyer-card">
@@ -272,6 +382,9 @@ const TalkToLawyer = () => {
                 </div>
               ))}
             </div>
+            )}
+
+            {/* Removed default My Queries summary to only show when toggled */}
           </>
         )}
 

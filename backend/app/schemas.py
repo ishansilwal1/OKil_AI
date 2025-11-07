@@ -82,6 +82,15 @@ class AppointmentOut(BaseModel):
 		from_attributes = True
 
 
+class AppointmentUpdate(BaseModel):
+	# Update appointment status or reschedule
+	status: Optional[str] = None  # expected: 'approved', 'rejected', 'cancelled', 'completed'
+	# Reschedule inputs: either provide slot_id or both date and time
+	date: Optional[date_type] = None
+	time: Optional[time_type] = None
+	slot_id: Optional[int] = None
+
+
 class QueryCreate(BaseModel):
 	title: str
 	content: str
@@ -99,6 +108,13 @@ class QueryOut(BaseModel):
 
 	class Config:
 		from_attributes = True
+
+
+class QueryUpdate(BaseModel):
+	# Update status or (optionally) edit content
+	status: Optional[str] = None  # e.g., 'accepted', 'info_requested', 'rejected', 'answered', 'closed', 'open'
+	subject: Optional[str] = None
+	description: Optional[str] = None
 
 
 class AvailabilitySlotCreate(BaseModel):

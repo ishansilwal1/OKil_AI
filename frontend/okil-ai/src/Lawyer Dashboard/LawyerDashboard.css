@@ -87,7 +87,9 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  margin-left: 240px; /* accommodate fixed sidebar */
+  height: 100vh;
+  overflow-y: auto;
 }
 
 /* Top row */
@@ -219,6 +221,62 @@
   margin-bottom: 6px;
 }
 
+/* Slot table */
+.lawyer-dashboard-wrapper .ld-slot-table-wrapper {
+  border: 1px solid #e6e9ef;
+  border-radius: 10px;
+  background:#fff;
+  overflow: hidden;
+  max-height: 220px; /* limit height to create scroll area */
+  display: flex;
+  flex-direction: column;
+}
+.lawyer-dashboard-wrapper .ld-slot-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.lawyer-dashboard-wrapper .ld-slot-table thead {
+  background: #f3f4f6;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.lawyer-dashboard-wrapper .ld-slot-table th,
+.lawyer-dashboard-wrapper .ld-slot-table td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid #e6e9ef;
+}
+.lawyer-dashboard-wrapper .ld-slot-table th {
+  font-weight: 600;
+  color: #153e90;
+  font-size: 11px;
+  letter-spacing: .5px;
+}
+.lawyer-dashboard-wrapper .ld-slot-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.lawyer-dashboard-wrapper .ld-slot-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+/* Make tbody scrollable while keeping header fixed */
+.lawyer-dashboard-wrapper .ld-slot-table-wrapper table {
+  display: block;
+  overflow-y: auto;
+}
+.lawyer-dashboard-wrapper .ld-slot-table-wrapper thead,
+.lawyer-dashboard-wrapper .ld-slot-table-wrapper tbody,
+.lawyer-dashboard-wrapper .ld-slot-table-wrapper tr,
+.lawyer-dashboard-wrapper .ld-slot-table-wrapper th,
+.lawyer-dashboard-wrapper .ld-slot-table-wrapper td { display: block; }
+.lawyer-dashboard-wrapper .ld-slot-table-wrapper thead { width: 100%; }
+.lawyer-dashboard-wrapper .ld-slot-table-wrapper tr { display: flex; }
+.lawyer-dashboard-wrapper .ld-slot-table-wrapper th,
+.lawyer-dashboard-wrapper .ld-slot-table-wrapper td { flex: 1; }
+.lawyer-dashboard-wrapper .ld-slot-table-wrapper tbody { overflow-y: auto; max-height: 90px; }
+
 .lawyer-dashboard-wrapper .ld-upcoming-item {
   display: flex;
   align-items: center;
@@ -269,17 +327,22 @@
   border: 1px solid #e6e9ef;
   border-radius: 12px;
   background: #fff;
+  display: flex;
+  flex-direction: column;
+  max-height: 400px; /* cap height so inner list scrolls */
 }
 
 .lawyer-dashboard-wrapper .ld-card-head {
   padding: 12px 16px;
   font-weight: 600;
-  color: #1f2937;
+  color: #58b8ad;
   border-bottom: 1px solid #e6e9ef;
 }
 
 .lawyer-dashboard-wrapper .ld-list {
   padding: 8px 10px 12px 10px;
+  overflow-y: auto;
+  flex: 1;
 }
 
 .lawyer-dashboard-wrapper .ld-list-row {
@@ -322,5 +385,10 @@
   .lawyer-dashboard-wrapper .ld-recent-chats,
   .lawyer-dashboard-wrapper .ld-sidebar-footer {
     display: none;
+  }
+  .lawyer-dashboard-wrapper .ld-main {
+    margin-left: 0;
+    margin-top: 60px; /* below fixed top bar */
+    height: calc(100vh - 60px);
   }
 }

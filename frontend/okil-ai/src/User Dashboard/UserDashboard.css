@@ -140,6 +140,9 @@
   display: flex;
   flex-direction: column;
   background-color: #ffffff;
+  margin-left: 240px; /* account for fixed sidebar */
+  height: 100vh;
+  overflow-y: auto;
 }
 
 /* ====== Header ====== */
@@ -377,6 +380,8 @@
   .dashboard-main-content {
     flex: 1;
     height: calc(100vh - 60px);
+    margin-left: 0; /* sidebar becomes top bar */
+    margin-top: 60px; /* push below fixed top bar */
   }
 
   .dashboard-chat-container {
