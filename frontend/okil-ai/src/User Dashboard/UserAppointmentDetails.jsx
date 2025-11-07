@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import Sidebar from './Sidebar';
+import Sidebar from '../Sidebar/Sidebar';
 import '../Lawyer Dashboard/Details.css';
 
 export default function UserAppointmentDetails() {

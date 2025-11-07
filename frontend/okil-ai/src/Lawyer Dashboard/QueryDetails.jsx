@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import Sidebar from '../User Dashboard/Sidebar';
+import Sidebar from '../Sidebar/Sidebar';
 import './Details.css';
 
 export default function QueryDetails() {

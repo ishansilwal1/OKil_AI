@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./LawyerDashboard.css";
-import Sidebar from "../User Dashboard/Sidebar";
+import Sidebar from "../Sidebar/Sidebar";
 
 const LawyerDashboard = () => {
   const navigate = useNavigate();
