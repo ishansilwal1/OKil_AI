@@ -1,0 +1,202 @@
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from typing import List, Optional
+from datetime import datetime, timezone
+from sqlalchemy import cast, Date as SA_Date, Time as SA_Time
+
+from .db import get_db
+from . import models
+from .auth import get_current_user
+from .schemas import (
+    LawyerOut,
+    AppointmentCreate,
+    AppointmentOut,
+    QueryCreate,
+    QueryOut,
+    AvailabilitySlotCreate,
+    AvailabilitySlotOut,
+)
+
+router = APIRouter()
+
+
+@router.get("/lawyers", response_model=List[LawyerOut])
+def list_lawyers(db: Session = Depends(get_db)):
+    lawyers = db.query(models.User).filter(models.User.role == 'lawyer').all()
+    # Return only selected fields
+    return [
+        LawyerOut(
+            id=l.id,
+            name=l.name,
+            username=l.username,
+            email=l.email,
+            barCouncilNumber=l.barCouncilNumber,
+        ) for l in lawyers
+    ]
+
+
+@router.post("/appointments", response_model=AppointmentOut)
+def create_appointment(
+    req: AppointmentCreate,
+    current=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    # Validate target lawyer
+    lawyer = db.query(models.User).filter(models.User.id == req.lawyer_id, models.User.role == 'lawyer').first()
+    if not lawyer:
+        raise HTTPException(status_code=404, detail="Lawyer not found")
+
+    # If a slot is chosen, validate and book it
+    preferred_at = req.preferred_at
+    if req.slot_id is not None:
+        slot = db.query(models.AvailabilitySlot).filter(
+            models.AvailabilitySlot.id == req.slot_id,
+            models.AvailabilitySlot.lawyer_id == req.lawyer_id
+        ).first()
+        if not slot:
+            raise HTTPException(status_code=404, detail="Availability slot not found")
+        if slot.is_booked:
+            raise HTTPException(status_code=409, detail="This slot has already been booked")
+        preferred_at = slot.start_at
+
+    # Optional: basic conflict check (lawyer has another appointment at the same time)
+    # Determine date/time values for DB
+    appt_date = None
+    appt_time = None
+    if preferred_at is not None:
+        appt_date = preferred_at.date()
+        appt_time = preferred_at.time()
+    elif req.date is not None and req.time is not None:
+        appt_date = req.date
+        appt_time = req.time
+
+    # Basic conflict check
+    if appt_date is not None and appt_time is not None:
+        # Cast DB columns to DATE/TIME explicitly to avoid varchar vs date/time mismatches
+        conflict = db.query(models.Appointment).filter(
+            models.Appointment.lawyer_id == req.lawyer_id,
+            cast(models.Appointment.date, SA_Date) == appt_date,
+            cast(models.Appointment.time, SA_Time) == appt_time,
+            models.Appointment.status.in_(['pending', 'approved', 'completed'])
+        ).first()
+        if conflict:
+            raise HTTPException(status_code=409, detail="Lawyer is not available at the selected time")
+
+    # Create appointment
+    appt = models.Appointment(
+        user_id=current['id'],
+        lawyer_id=req.lawyer_id,
+        date=appt_date,
+        time=appt_time,
+        description=req.message,
+        status='pending'
+    )
+    db.add(appt)
+
+    # Mark slot as booked if used
+    if req.slot_id is not None:
+        slot.is_booked = True
+        db.add(slot)
+
+    db.commit()
+    db.refresh(appt)
+    return appt
+
+
+@router.get("/appointments", response_model=List[AppointmentOut])
+def list_appointments(
+    current=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if current['role'] == 'lawyer':
+        q = db.query(models.Appointment).filter(models.Appointment.lawyer_id == current['id'])
+    else:
+        q = db.query(models.Appointment).filter(models.Appointment.user_id == current['id'])
+    return q.order_by(models.Appointment.created_at.desc()).all()
+
+
+@router.post("/queries", response_model=QueryOut)
+def create_query(
+    req: QueryCreate,
+    current=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    # If lawyer_id provided, ensure it's a valid lawyer
+    if req.lawyer_id:
+        lawyer = db.query(models.User).filter(models.User.id == req.lawyer_id, models.User.role == 'lawyer').first()
+        if not lawyer:
+            raise HTTPException(status_code=404, detail="Lawyer not found")
+
+    q = models.Query(
+        user_id=current['id'],
+        lawyer_id=req.lawyer_id,
+        subject=req.title,
+        description=req.content,
+        status='open'
+    )
+    db.add(q)
+    db.commit()
+    db.refresh(q)
+    return q
+
+
+@router.get("/queries", response_model=List[QueryOut])
+def list_queries(
+    current=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if current['role'] == 'lawyer':
+        # For lawyers, show both assigned to me and unassigned
+        q = db.query(models.Query).filter(
+            (models.Query.lawyer_id == current['id']) | (models.Query.lawyer_id.is_(None))
+        )
+    else:
+        q = db.query(models.Query).filter(models.Query.user_id == current['id'])
+    return q.order_by(models.Query.created_at.desc()).all()
+
+
+@router.get("/lawyers/{lawyer_id}/availability", response_model=List[AvailabilitySlotOut])
+def get_lawyer_availability(lawyer_id: int, db: Session = Depends(get_db)):
+    # Only upcoming, not booked slots
+    # Use timezone-aware UTC to avoid naive/aware comparison issues
+    now = datetime.now(timezone.utc)
+    slots = db.query(models.AvailabilitySlot).filter(
+        models.AvailabilitySlot.lawyer_id == lawyer_id,
+        models.AvailabilitySlot.is_booked == False,  # noqa: E712
+        models.AvailabilitySlot.start_at >= now
+    ).order_by(models.AvailabilitySlot.start_at.asc()).all()
+    return slots
+
+
+@router.post("/lawyers/availability", response_model=AvailabilitySlotOut)
+def create_availability_slot(
+    req: AvailabilitySlotCreate,
+    current=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    # Only lawyers can create availability
+    if current['role'] != 'lawyer':
+        raise HTTPException(status_code=403, detail="Only lawyers can add availability")
+
+    if req.end_at <= req.start_at:
+        raise HTTPException(status_code=400, detail="end_at must be after start_at")
+
+    # Prevent overlapping with existing slots for the lawyer (basic check)
+    overlap = db.query(models.AvailabilitySlot).filter(
+        models.AvailabilitySlot.lawyer_id == current['id'],
+        models.AvailabilitySlot.end_at > req.start_at,
+        models.AvailabilitySlot.start_at < req.end_at
+    ).first()
+    if overlap:
+        raise HTTPException(status_code=409, detail="Overlapping availability slot exists")
+
+    slot = models.AvailabilitySlot(
+        lawyer_id=current['id'],
+        start_at=req.start_at,
+        end_at=req.end_at,
+        is_booked=False
+    )
+    db.add(slot)
+    db.commit()
+    db.refresh(slot)
+    return slot

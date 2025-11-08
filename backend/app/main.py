@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .auth import router as auth_router
 from .api.v1.legal_chat import router as legal_chat_router
 from .api.v1.chat_history import router as chat_history_router
+from .interactions import router as interactions_router
 from . import models
 from .db import init_db
 
@@ -17,6 +18,8 @@ app = FastAPI(
 
 # Allow the frontend dev server to access the API during development.
 # In production, narrow this to specific origins.
+# During development, allow all origins to avoid CORS issues when opening the
+# frontend via file:// or different hosts/ports. Consider restricting this in production.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Allow all origins for testing
@@ -58,6 +61,7 @@ def read_item(item_id: int, q: Union[str, None] = None):
 app.include_router(auth_router, prefix="/auth", tags=["Authentication"])
 app.include_router(legal_chat_router, prefix="/api/v1/legal", tags=["Legal Chat"])
 app.include_router(chat_history_router, prefix="/api/v1/chat", tags=["Chat History"])
+app.include_router(interactions_router)
 
 
 @app.on_event("startup")

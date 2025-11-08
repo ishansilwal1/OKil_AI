@@ -2,6 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import Auth from '../Auth/Auth';
 import UserDashboard from '../User Dashboard/UserDashboard';
+import LawyerDashboard from '../Lawyer Dashboard/LawyerDashboard';
+import AppointmentDetails from '../Lawyer Dashboard/AppointmentDetails';
+import QueryDetails from '../Lawyer Dashboard/QueryDetails';
+import TalkToLawyer from '../User Dashboard/TalkToLawyer';
+import Library from '../User Dashboard/Library';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -51,6 +56,12 @@ export default function Routs() {
           </ProtectedRoute>
         } 
       />
+      <Route path="/user-dashboard" element={<UserDashboard />} />
+      <Route path="/talk-to-lawyer" element={<TalkToLawyer />} />
+      <Route path="/library" element={<Library />} />
+      <Route path="/lawyer-dashboard" element={<LawyerDashboard />} />
+      <Route path="/lawyer/appointments/:id" element={<AppointmentDetails />} />
+      <Route path="/lawyer/queries/:id" element={<QueryDetails />} />
       <Route path="/" element={<Navigate to="/login" replace />} />
     </Routes>
   );

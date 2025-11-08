@@ -139,12 +139,10 @@ const Auth = () => {
           console.error('No user data in response!');
         }
         
-        setLoginLoading(false);
-        
         // Small delay to ensure localStorage is written
         await new Promise(resolve => setTimeout(resolve, 100));
         
-        console.log('Navigating to /dashboard');
+        console.log('Navigating to dashboard');
         console.log('Token check:', localStorage.getItem('okil_token'));
         console.log('User check:', localStorage.getItem('okil_user'));
         
@@ -158,8 +156,14 @@ const Auth = () => {
           draggable: true,
         });
         
-        // navigate to dashboard
-        navigate('/dashboard', { replace: true });
+        setLoginLoading(false);
+        
+        // Redirect based on role
+        if (data.user && data.user.role === 'lawyer') {
+          navigate('/lawyer-dashboard', { replace: true });
+        } else {
+          navigate('/dashboard', { replace: true });
+        }
       } catch (err) {
         setLoginLoading(false);
         setLoginError(err.message || 'Login failed');
@@ -391,14 +395,15 @@ const Auth = () => {
   };
 
   return (
-    <div className="login-page" style={{
-      backgroundImage: `url('/Background.png')`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat',
-      backgroundAttachment: 'fixed'
-    }}>
-      <div className="header">
+    <div className="auth-wrapper">
+      <div className="login-page" style={{
+        backgroundImage: `url('/Background.png')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed'
+      }}>
+        <div className="header">
         <div className="logo-container">
           <img src="/logo.png" alt="OKIL AI" className="logo" />
           <span className="logo-text">OKIL AI</span>
@@ -1006,6 +1011,7 @@ const Auth = () => {
           )}
         </div>
       </div>
+    </div>
     </div>
   );
 };
