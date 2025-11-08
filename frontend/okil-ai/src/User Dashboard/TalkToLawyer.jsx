@@ -334,7 +334,10 @@ const TalkToLawyer = () => {
                           <span className="user-query-title">{q.subject || `Query #${q.id}`}</span>
                           <span className="user-query-meta">to Lawyer #{q.lawyer_id || '—'}</span>
                         </div>
-                        <span className={`user-query-status q-${q.status}`}>{q.status}</span>
+                        <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+                          <span className={`user-query-status q-${q.status}`}>{q.status}</span>
+                          <button className="back-btn" onClick={()=> navigate(`/user/queries/${q.id}`)}>View</button>
+                        </div>
                       </div>
                     ))}
                   </div>
