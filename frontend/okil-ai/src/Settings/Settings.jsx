@@ -43,12 +43,33 @@ export default function Settings() {
 		showToast('Changes saved');
 	};
 
-	const handleDelete = () => {
-		if (!window.confirm('Delete account? This action cannot be undone.')) return;
-		// Placeholder: just sign out locally
-		localStorage.removeItem('okil_token');
-		localStorage.removeItem('okil_user');
-		window.location.href = '/';
+	// Delete account modal state
+	const [showDeleteModal, setShowDeleteModal] = useState(false);
+	const openDeleteModal = () => setShowDeleteModal(true);
+	const closeDeleteModal = () => setShowDeleteModal(false);
+	const performDelete = async () => {
+		const token = localStorage.getItem('okil_token');
+		if (!token) {
+			localStorage.removeItem('okil_user');
+			window.location.href = '/';
+			return;
+		}
+		try {
+			const res = await fetch(`${API_BASE}/auth/me`, {
+				method: 'DELETE',
+				headers: { 'Authorization': `Bearer ${token}` }
+			});
+			if (!res.ok) {
+				// surface error
+				showToast('Failed to delete account', 'error');
+				return;
+			}
+			localStorage.removeItem('okil_token');
+			localStorage.removeItem('okil_user');
+			window.location.href = '/';
+		} catch (e) {
+			showToast('Network error deleting account', 'error');
+		}
 	};
 
 	return (
@@ -104,13 +125,26 @@ export default function Settings() {
 
 							<div className="settings-actions">
 								<button className="primary-btn" type="submit">SAVE CHANGES</button>
-								<button className="danger-btn" type="button" onClick={handleDelete}>DELETE ACCOUNT</button>
+								<button className="danger-btn" type="button" onClick={openDeleteModal}>DELETE ACCOUNT</button>
 							</div>
 						</form>
 					</section>
 
 					{toast && (
 						<div className={`simple-toast ${toast.type}`}>{toast.msg}</div>
+					)}
+
+					{showDeleteModal && (
+						<div className="modal-overlay" role="dialog" aria-modal="true">
+							<div className="modal-content danger">
+								<div className="modal-header">Delete Account</div>
+								<div className="modal-body">This action will permanently remove your account data. Are you sure you want to continue?</div>
+								<div className="modal-actions">
+									<button className="modal-btn confirm" onClick={performDelete}>Yes, Delete</button>
+									<button className="modal-btn" onClick={closeDeleteModal}>Cancel</button>
+								</div>
+							</div>
+						</div>
 					)}
 				</div>
 			</main>

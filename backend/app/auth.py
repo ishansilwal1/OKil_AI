@@ -13,6 +13,7 @@ from .schemas import (
 from pathlib import Path
 from datetime import datetime, timezone
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 from .db import get_db
 from . import models
 from hashlib import sha256
@@ -250,4 +251,38 @@ def logout(credentials: HTTPAuthorizationCredentials = Depends(security), db: Se
 		db.commit()
 	
 	return {'message': 'Logged out'}
+
+
+@router.delete('/me')
+def delete_me(current=Depends(get_current_user), db: Session = Depends(get_db)):
+	"""Delete the currently authenticated user's account and related data.
+	This removes availability slots, appointments (as user or lawyer), queries (as user or lawyer),
+	and auth tokens before deleting the user.
+	"""
+	uid = current['id']
+
+	# Best-effort cleanup of dependent rows to satisfy FK constraints
+	db.query(models.AvailabilitySlot).filter(models.AvailabilitySlot.lawyer_id == uid).delete(synchronize_session=False)
+	db.query(models.Appointment).filter(
+		or_(
+			models.Appointment.user_id == uid,
+			models.Appointment.lawyer_id == uid
+		)
+	).delete(synchronize_session=False)
+	db.query(models.Query).filter(
+		or_(
+			models.Query.user_id == uid,
+			models.Query.lawyer_id == uid
+		)
+	).delete(synchronize_session=False)
+	db.query(models.LoginToken).filter(models.LoginToken.user_id == uid).delete(synchronize_session=False)
+	db.query(models.ResetToken).filter(models.ResetToken.user_id == uid).delete(synchronize_session=False)
+
+	user = db.query(models.User).filter(models.User.id == uid).first()
+	if not user:
+		raise HTTPException(status_code=404, detail='User not found')
+
+	db.delete(user)
+	db.commit()
+	return {'message': 'Account deleted'}
 
