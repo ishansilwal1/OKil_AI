@@ -7,6 +7,8 @@ import AppointmentDetails from '../Lawyer Dashboard/AppointmentDetails';
 import QueryDetails from '../Lawyer Dashboard/QueryDetails';
 import TalkToLawyer from '../User Dashboard/TalkToLawyer';
 import Library from '../User Dashboard/Library';
+import MyAppointments from '../User Dashboard/MyAppointments';
+import MyQueries from '../User Dashboard/MyQueries';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -57,11 +59,11 @@ export default function Routs() {
         } 
       />
       <Route path="/user-dashboard" element={<UserDashboard />} />
-      <Route path="/chat" element={<UserDashboard />} />
       <Route path="/talk-to-lawyer" element={<TalkToLawyer />} />
       <Route path="/library" element={<Library />} />
+      <Route path="/my-appointments" element={<MyAppointments />} />
+      <Route path="/my-queries" element={<MyQueries />} />
       <Route path="/lawyer-dashboard" element={<LawyerDashboard />} />
-      <Route path="/lawyer-chat" element={<UserDashboard />} />
       <Route path="/lawyer/appointments/:id" element={<AppointmentDetails />} />
       <Route path="/lawyer/queries/:id" element={<QueryDetails />} />
       <Route path="/" element={<Navigate to="/login" replace />} />

@@ -34,12 +34,9 @@ const Library = () => {
     }
     setRole(user.role || 'user');
 
-    // Load recent chats only for normal users; lawyers shouldn't see user chats here
+    // Load recent chats from backend
     if ((user.role || 'user') !== 'lawyer') {
-      const savedChats = localStorage.getItem('okil_recent_chats');
-      if (savedChats) {
-        setRecentChats(JSON.parse(savedChats));
-      }
+      loadRecentChats();
     } else {
       setRecentChats([]);
     }
@@ -49,6 +46,35 @@ const Library = () => {
     // TODO: Fetch documents from backend
     // fetchDocuments();
   }, [navigate]);
+
+  const loadRecentChats = async () => {
+    const token = localStorage.getItem('okil_token');
+    if (!token) return;
+
+    const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+    
+    try {
+      const response = await fetch(`${API_BASE}/api/v1/chat/sessions`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const sessions = await response.json();
+        const formattedChats = sessions.map(session => ({
+          id: `db-${session.id}`,
+          title: session.title,
+          date: new Date(session.updated_at).toLocaleDateString(),
+          messageCount: session.message_count,
+          timestamp: new Date(session.updated_at).getTime()
+        }));
+        setRecentChats(formattedChats);
+      }
+    } catch (error) {
+      console.error('Failed to load chats:', error);
+    }
+  };
 
   const handleView = (document) => {
     // TODO: Open document viewer modal or new tab
@@ -71,6 +97,27 @@ const Library = () => {
     navigate(target, { state: { loadChatId: chatId } });
   };
 
+  const handleDeleteChat = async (chatId) => {
+    const token = localStorage.getItem('okil_token');
+    if (!token) return;
+
+    const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+    const sessionId = chatId.replace('db-', '');
+    
+    try {
+      await fetch(`${API_BASE}/api/v1/chat/sessions/${sessionId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      setRecentChats(prev => prev.filter(chat => chat.id !== chatId));
+    } catch (error) {
+      console.error('Failed to delete chat:', error);
+    }
+  };
+
   const getActiveDocuments = () => {
     return documents[activeTab] || [];
   };
@@ -89,6 +136,7 @@ const Library = () => {
           recentChats={recentChats}
           onNewChat={handleNewChat}
           onLoadChat={handleLoadChat}
+          onDeleteChat={handleDeleteChat}
         />
 
       {/* Main Content */}

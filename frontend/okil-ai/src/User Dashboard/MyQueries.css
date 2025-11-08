@@ -1,0 +1,279 @@
+/* MyQueries.css - Matching Lawyer Dashboard Design */
+
+.queries-wrapper {
+  display: flex;
+  min-height: 100vh;
+}
+
+.queries-main-content {
+  flex: 1;
+  margin-left: 240px;
+  padding: 24px;
+  background: #f5f9fb;
+  overflow-y: auto;
+}
+
+.queries-header {
+  margin-bottom: 20px;
+}
+
+.queries-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0c7a5b;
+  margin: 0 0 6px 0;
+}
+
+.queries-subtitle {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.queries-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  font-size: 16px;
+  color: #6b7280;
+}
+
+.queries-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+  gap: 20px;
+}
+
+.query-card {
+  background: white;
+  border: 1px solid #e6e9ef;
+  border-radius: 10px;
+  padding: 18px 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.query-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.query-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.query-card-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  flex: 1;
+  padding-right: 12px;
+}
+
+.query-status {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: white;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.query-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.query-detail-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.query-detail-item svg {
+  stroke-width: 2;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.query-detail-text {
+  flex: 1;
+  line-height: 1.5;
+}
+
+.query-meta {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.query-meta .query-detail-item {
+  font-size: 12px;
+}
+
+.query-answer {
+  background: #f0fdf4;
+  border-left: 3px solid #0aa36c;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  border-radius: 6px;
+}
+
+.answer-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #0aa36c;
+  font-size: 12px;
+}
+
+.answer-header svg {
+  stroke-width: 2.5;
+}
+
+.query-answer p {
+  margin: 0;
+  color: #374151;
+  line-height: 1.5;
+  font-size: 13px;
+}
+
+.query-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.action-btn {
+  flex: 1;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-btn.primary {
+  background: #0f9d8a;
+  color: white;
+}
+
+.action-btn.primary:hover {
+  background: #0a9e7a;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(15, 157, 138, 0.3);
+}
+
+.action-btn.secondary {
+  background: #f3f4f6;
+  color: #6b7280;
+  border: 1px solid #e5e7eb;
+}
+
+.action-btn.secondary:hover {
+  background: #e5e7eb;
+}
+
+.action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.no-queries {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  background: white;
+  border: 1px solid #e6e9ef;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.no-queries svg {
+  opacity: 0.4;
+  margin-bottom: 20px;
+  stroke-width: 2;
+  color: #0c7a5b;
+}
+
+.no-queries h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: #1f2937;
+}
+
+.no-queries p {
+  font-size: 14px;
+  margin: 0 0 20px 0;
+  color: #6b7280;
+}
+
+.submit-query-btn {
+  background: #0f9d8a;
+  color: white;
+  padding: 10px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.submit-query-btn:hover {
+  background: #0a9e7a;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(15, 157, 138, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .queries-list {
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .queries-main-content {
+    margin-left: 0;
+    padding: 20px;
+  }
+
+  .queries-list {
+    grid-template-columns: 1fr;
+  }
+
+  .query-card {
+    padding: 20px;
+  }
+
+  .query-meta {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .query-actions {
+    flex-direction: column;
+  }
+}
