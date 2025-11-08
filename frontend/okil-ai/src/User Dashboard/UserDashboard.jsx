@@ -29,12 +29,7 @@ const UserDashboard = () => {
 
     const parsedUser = JSON.parse(userInfo);
     
-    // Ensure user has correct role
-    if (parsedUser.role !== 'user') {
-      navigate('/lawyer-dashboard');
-      return;
-    }
-    
+    // Allow both users and lawyers to access chat
     setUser(parsedUser);
 
     // Load recent chats from database
@@ -474,8 +469,8 @@ const UserDashboard = () => {
           
           // Show number and header together in blue, then content below if exists
           formatted.push(
-            <div key={`${idx}-header`}>
-              <strong className="heading-text">{number} {headerText}</strong>
+            <div key={`${idx}-header`} className="message-heading">
+              {number} {headerText}
             </div>
           );
           
@@ -497,8 +492,8 @@ const UserDashboard = () => {
               
               // Show the header in blue
               formatted.push(
-                <div key={`${idx}-header-${matchIdx}`}>
-                  <strong className="heading-text">{headerText}</strong>
+                <div key={`${idx}-header-${matchIdx}`} className="message-heading">
+                  {headerText}
                 </div>
               );
             });
@@ -540,6 +535,7 @@ const UserDashboard = () => {
       <div className="user-dashboard">
         {/* Sidebar */}
         <Sidebar 
+          role={user?.role}
           activeMenu={currentChatId ? "recentchat" : "newchat"} 
           recentChats={recentChats}
           onNewChat={handleNewChat}

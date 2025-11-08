@@ -57,9 +57,11 @@ export default function Routs() {
         } 
       />
       <Route path="/user-dashboard" element={<UserDashboard />} />
+      <Route path="/chat" element={<UserDashboard />} />
       <Route path="/talk-to-lawyer" element={<TalkToLawyer />} />
       <Route path="/library" element={<Library />} />
       <Route path="/lawyer-dashboard" element={<LawyerDashboard />} />
+      <Route path="/lawyer-chat" element={<UserDashboard />} />
       <Route path="/lawyer/appointments/:id" element={<AppointmentDetails />} />
       <Route path="/lawyer/queries/:id" element={<QueryDetails />} />
       <Route path="/" element={<Navigate to="/login" replace />} />
