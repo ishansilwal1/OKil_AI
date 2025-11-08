@@ -7,6 +7,12 @@
   flex-direction: column;
   justify-content: space-between;
   transition: all 0.3s ease;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  z-index: 1000;
+  overflow: hidden; /* inner sections manage their own scroll */
 }
 
 /* ====== Logo Section ====== */
@@ -192,6 +198,9 @@
     align-items: center;
     justify-content: space-between;
     padding: 0 10px;
+    left: 0;
+    top: 0;
+    right: 0;
   }
 
   .sidebar-header {

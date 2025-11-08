@@ -8,11 +8,24 @@ const TalkToLawyer = () => {
   const [loading, setLoading] = useState(true);
   const [recentChats, setRecentChats] = useState([]);
   const [currentView, setCurrentView] = useState('list'); // 'list', 'appointment', 'query'
+  const [recordsView, setRecordsView] = useState(null); // null | 'appointments' | 'queries'
   const [selectedLawyer, setSelectedLawyer] = useState(null);
   const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
-  const [availability, setAvailability] = useState([]); // list of slots
+  const [availability, setAvailability] = useState([]); // list of 30-min slots
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedSlotId, setSelectedSlotId] = useState(null);
+  // Toast notifications (corner, auto-dismiss)
+  const [toasts, setToasts] = useState([]);
+  const addToast = (message, type = 'success', duration = 3500) => {
+    const id = Date.now() + Math.random();
+    setToasts((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, duration);
+  };
+  const removeToast = (id) => setToasts((prev) => prev.filter((t) => t.id !== id));
+  const [myAppointments, setMyAppointments] = useState([]);
+  const [apptLoading, setApptLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -23,6 +36,8 @@ const TalkToLawyer = () => {
     issue: ''
   });
   const [lawyers, setLawyers] = useState([]);
+  const [myQueries, setMyQueries] = useState([]);
+  const [qLoading, setQLoading] = useState(false);
 
   useEffect(() => {
     const initializePage = async () => {
@@ -45,7 +60,9 @@ const TalkToLawyer = () => {
       try {
         await Promise.all([
           loadRecentChats(),
-          fetchLawyers()
+          fetchLawyers(),
+          fetchMyAppointments(),
+          fetchMyQueries()
         ]);
       } catch (error) {
         console.error('Error initializing page:', error);
@@ -136,6 +153,36 @@ const TalkToLawyer = () => {
     setCurrentView('query');
   };
 
+  const fetchMyAppointments = async () => {
+    const token = localStorage.getItem('okil_token');
+    if (!token) return;
+    setApptLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/appointments`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const data = await res.json();
+      setMyAppointments(Array.isArray(data) ? data : []);
+    } catch (e) {
+      setMyAppointments([]);
+    } finally {
+      setApptLoading(false);
+    }
+  };
+
+  const fetchMyQueries = async () => {
+    const token = localStorage.getItem('okil_token');
+    if (!token) return;
+    setQLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/queries`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const data = await res.json();
+      setMyQueries(Array.isArray(data) ? data : []);
+    } catch (e) {
+      setMyQueries([]);
+    } finally {
+      setQLoading(false);
+    }
+  };
+
   const handleNewChat = () => {
     navigate('/user-dashboard');
   };
@@ -178,7 +225,7 @@ const TalkToLawyer = () => {
           throw new Error(err.detail || 'Failed to create appointment');
         }
         await res.json();
-        alert('Appointment request sent! A lawyer will contact you shortly.');
+        addToast('Appointment request sent! A lawyer will contact you shortly.', 'success');
         setCurrentView('list');
         setFormData({
           name: '',
@@ -191,7 +238,13 @@ const TalkToLawyer = () => {
         });
         setSelectedSlotId(null);
       } catch (error) {
-        alert(error.message || 'Failed to book appointment');
+        // Detect slot already booked conflict and show corner toast
+        if ((error.message || '').toLowerCase().includes('already been booked')) {
+          addToast('Sorry, that time slot was just taken. Please pick another available time.', 'error');
+          if (selectedLawyer) fetchAvailability(selectedLawyer.id);
+        } else {
+          addToast(error.message || 'Failed to book appointment', 'error');
+        }
       }
     })();
   };
@@ -220,7 +273,7 @@ const TalkToLawyer = () => {
           throw new Error(err.detail || 'Failed to submit query');
         }
         await res.json();
-        alert('Query submitted! A lawyer will respond via email.');
+        addToast('Query submitted! A lawyer will respond via email.', 'success');
         setCurrentView('list');
         setFormData({
           name: '',
@@ -233,7 +286,7 @@ const TalkToLawyer = () => {
         });
       } catch (error) {
         console.error('Submit query error:', error);
-        alert(error.message || 'Failed to submit query');
+        addToast(error.message || 'Failed to submit query', 'error');
       }
     })();
   };
@@ -283,36 +336,84 @@ const TalkToLawyer = () => {
       <div className="lawyer-main-content">
         {currentView === 'list' && (
           <>
-            <div className="lawyer-page-header">
-              <h1 className="lawyer-page-title">Talk To Lawyer</h1>
-              <div className="user-action-buttons">
-                <button 
-                  className="user-action-btn appointments"
-                  onClick={() => navigate('/my-appointments')}
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                    <line x1="16" y1="2" x2="16" y2="6"/>
-                    <line x1="8" y1="2" x2="8" y2="6"/>
-                    <line x1="3" y1="10" x2="21" y2="10"/>
-                  </svg>
-                  My Appointments
-                </button>
-                <button 
-                  className="user-action-btn queries"
-                  onClick={() => navigate('/my-queries')}
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-                    <line x1="12" y1="17" x2="12.01" y2="17"/>
-                  </svg>
-                  My Queries
-                </button>
+            <div className="lawyer-page-header" style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:12 }}>
+              <h1 className="lawyer-page-title" style={{ margin:0 }}>Talk To Lawyer</h1>
+              <div className="record-toggle">
+                <button className={`record-btn ${recordsView==='appointments' ? 'active' : ''}`} onClick={()=> setRecordsView('appointments')}>My Appointments</button>
+                <button className={`record-btn ${recordsView==='queries' ? 'active' : ''}`} onClick={()=> setRecordsView('queries')}>My Queries</button>
+                {recordsView && (
+                  <button className="record-btn secondary" onClick={()=> setRecordsView(null)}>Close</button>
+                )}
               </div>
             </div>
 
-            {/* Lawyers Grid */}
+            {/* Removed default My Appointments summary to only show when toggled */}
+
+            {/* Records Panels */}
+            {recordsView === 'appointments' && (
+              <div>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+                  <h2 style={{ fontSize:18, margin:0 }}>My Appointments</h2>
+                  <button className="refresh-btn" onClick={fetchMyAppointments}>Refresh</button>
+                </div>
+                {apptLoading && <div style={{ fontSize:13, color:'#666' }}>Loading appointments...</div>}
+                {!apptLoading && myAppointments.length === 0 && (
+                  <div style={{ fontSize:13, color:'#666' }}>You have no appointments yet.</div>
+                )}
+                {!apptLoading && myAppointments.length > 0 && (
+                  <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                    {myAppointments.map(a => {
+                      const dateStr = a.date ? new Date(a.date).toLocaleDateString() : '—';
+                      const timeStr = a.time || '';
+                      return (
+                        <div key={a.id} className="user-appt-row">
+                          <div className="user-appt-main">
+                            <span className="user-appt-title">Lawyer #{a.lawyer_id}</span>
+                            <span className="user-appt-meta">{dateStr} {timeStr}</span>
+                          </div>
+                          <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+                            <span className={`user-appt-status status-${a.status}`}>{a.status}</span>
+                            <button className="back-btn" onClick={()=> navigate(`/user/appointments/${a.id}`)}>View</button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {recordsView === 'queries' && (
+              <div>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+                  <h2 style={{ fontSize:18, margin:0 }}>My Queries</h2>
+                  <button className="refresh-btn" onClick={fetchMyQueries}>Refresh</button>
+                </div>
+                {qLoading && <div style={{ fontSize:13, color:'#666' }}>Loading queries...</div>}
+                {!qLoading && myQueries.length === 0 && (
+                  <div style={{ fontSize:13, color:'#666' }}>You have no queries yet.</div>
+                )}
+                {!qLoading && myQueries.length > 0 && (
+                  <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                    {myQueries.map(q => (
+                      <div key={q.id} className="user-query-row">
+                        <div className="user-query-main">
+                          <span className="user-query-title">{q.subject || `Query #${q.id}`}</span>
+                          <span className="user-query-meta">to Lawyer #{q.lawyer_id || '—'}</span>
+                        </div>
+                        <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+                          <span className={`user-query-status q-${q.status}`}>{q.status}</span>
+                          <button className="back-btn" onClick={()=> navigate(`/user/queries/${q.id}`)}>View</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Lawyers Grid (only when not viewing records) */}
+            {recordsView === null && (
             <div className="lawyers-grid">
               {lawyers.map((lawyer) => (
                 <div key={lawyer.id} className="lawyer-card">
@@ -351,6 +452,9 @@ const TalkToLawyer = () => {
                 </div>
               ))}
             </div>
+            )}
+
+            {/* Removed default My Queries summary to only show when toggled */}
           </>
         )}
 
@@ -432,13 +536,7 @@ const TalkToLawyer = () => {
                   <label className="form-label">
                     <span className="required">*</span> Select Time
                   </label>
-                  <select
-                    className="form-input"
-                    value={selectedSlotId || ''}
-                    onChange={(e) => setSelectedSlotId(parseInt(e.target.value, 10))}
-                    required
-                  >
-                    <option value="" disabled>Select a time</option>
+                  <div className="slot-grid">
                     {availability
                       .filter(s => {
                         const d = new Date(s.start_at);
@@ -449,9 +547,20 @@ const TalkToLawyer = () => {
                       .map(s => {
                         const t = new Date(s.start_at);
                         const label = t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                        return <option key={s.id} value={s.id}>{label}</option>
+                        const selected = selectedSlotId === s.id;
+                        return (
+                          <button
+                            type="button"
+                            key={s.id}
+                            className={`slot-btn ${selected ? 'selected' : ''}`}
+                            onClick={() => setSelectedSlotId(s.id)}
+                            aria-pressed={selected}
+                          >
+                            {label}
+                          </button>
+                        );
                       })}
-                  </select>
+                  </div>
                   {selectedDate && availability.filter(s => {
                       const d = new Date(s.start_at);
                       const pad = (n) => String(n).padStart(2, '0');
@@ -461,6 +570,17 @@ const TalkToLawyer = () => {
                     <small style={{ color: '#888' }}>No times for the selected date.</small>
                   )}
                 </div>
+                {/* Toasts (corner notifications) */}
+                {toasts.length > 0 && (
+                  <div className="toast-container" aria-live="polite" aria-atomic="true">
+                    {toasts.map((t) => (
+                      <div key={t.id} className={`toast ${t.type}`} role="status">
+                        <span className="toast-msg">{t.message}</span>
+                        <button type="button" className="toast-close" onClick={() => removeToast(t.id)} aria-label="Close">×</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 <div className="form-group">
                   <label className="form-label">
@@ -563,6 +683,17 @@ const TalkToLawyer = () => {
                 </div>
               </form>
             </div>
+          </div>
+        )}
+        {/* Global Toasts (always mounted within this page) */}
+        {toasts.length > 0 && (
+          <div className="toast-container" aria-live="polite" aria-atomic="true">
+            {toasts.map((t) => (
+              <div key={t.id} className={`toast ${t.type}`} role="status">
+                <span className="toast-msg">{t.message}</span>
+                <button type="button" className="toast-close" onClick={() => removeToast(t.id)} aria-label="Close">×</button>
+              </div>
+            ))}
           </div>
         )}
       </div>

@@ -87,7 +87,9 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  margin-left: 240px; /* accommodate fixed sidebar */
+  height: 100vh;
+  overflow-y: auto;
 }
 
 /* Top row */
@@ -219,6 +221,62 @@
   margin-bottom: 6px;
 }
 
+/* Slot table */
+.lawyer-dashboard-wrapper .ld-slot-table-wrapper {
+  border: 1px solid #e6e9ef;
+  border-radius: 10px;
+  background:#fff;
+  overflow: hidden;
+  max-height: 220px; /* limit height to create scroll area */
+  display: flex;
+  flex-direction: column;
+}
+.lawyer-dashboard-wrapper .ld-slot-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.lawyer-dashboard-wrapper .ld-slot-table thead {
+  background: #f3f4f6;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.lawyer-dashboard-wrapper .ld-slot-table th,
+.lawyer-dashboard-wrapper .ld-slot-table td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid #e6e9ef;
+}
+.lawyer-dashboard-wrapper .ld-slot-table th {
+  font-weight: 600;
+  color: #153e90;
+  font-size: 11px;
+  letter-spacing: .5px;
+}
+.lawyer-dashboard-wrapper .ld-slot-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.lawyer-dashboard-wrapper .ld-slot-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+/* Make tbody scrollable while keeping header fixed */
+.lawyer-dashboard-wrapper .ld-slot-table-wrapper table {
+  display: block;
+  overflow-y: auto;
+}
+.lawyer-dashboard-wrapper .ld-slot-table-wrapper thead,
+.lawyer-dashboard-wrapper .ld-slot-table-wrapper tbody,
+.lawyer-dashboard-wrapper .ld-slot-table-wrapper tr,
+.lawyer-dashboard-wrapper .ld-slot-table-wrapper th,
+.lawyer-dashboard-wrapper .ld-slot-table-wrapper td { display: block; }
+.lawyer-dashboard-wrapper .ld-slot-table-wrapper thead { width: 100%; }
+.lawyer-dashboard-wrapper .ld-slot-table-wrapper tr { display: flex; }
+.lawyer-dashboard-wrapper .ld-slot-table-wrapper th,
+.lawyer-dashboard-wrapper .ld-slot-table-wrapper td { flex: 1; }
+.lawyer-dashboard-wrapper .ld-slot-table-wrapper tbody { overflow-y: auto; max-height: 90px; }
+
 .lawyer-dashboard-wrapper .ld-upcoming-item {
   display: flex;
   align-items: center;
@@ -269,17 +327,27 @@
   border: 1px solid #e6e9ef;
   border-radius: 12px;
   background: #fff;
+  display: flex;
+  flex-direction: column;
+  height: 360px; /* fixed height for each panel */
+  overflow: hidden; /* clip inner scrolling area */
 }
 
 .lawyer-dashboard-wrapper .ld-card-head {
   padding: 12px 16px;
   font-weight: 600;
-  color: #1f2937;
+  color: #58b8ad;
   border-bottom: 1px solid #e6e9ef;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 1;
 }
 
 .lawyer-dashboard-wrapper .ld-list {
   padding: 8px 10px 12px 10px;
+  overflow-y: auto;
+  flex: 1;
 }
 
 .lawyer-dashboard-wrapper .ld-list-row {
@@ -293,6 +361,21 @@
   background: #f9fafb;
 }
 
+/* Appointment status pills */
+.lawyer-dashboard-wrapper .ld-status {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  text-transform: capitalize;
+}
+.lawyer-dashboard-wrapper .status-pending { background:#fff7ed; color:#b45309; border-color:#fed7aa; }
+.lawyer-dashboard-wrapper .status-approved { background:#ecfdf5; color:#065f46; border-color:#a7f3d0; }
+.lawyer-dashboard-wrapper .status-rejected { background:#fef2f2; color:#991b1b; border-color:#fecaca; }
+.lawyer-dashboard-wrapper .status-cancelled { background:#f3f4f6; color:#374151; border-color:#e5e7eb; }
+.lawyer-dashboard-wrapper .status-completed { background:#eef2ff; color:#3730a3; border-color:#c7d2fe; }
+.lawyer-dashboard-wrapper .status-rescheduled { background:#fffbeb; color:#92400e; border-color:#fde68a; }
+
 .lawyer-dashboard-wrapper .ld-btn {
   background: #0f9d8a;
   color: #fff;
@@ -301,6 +384,44 @@
   border-radius: 8px;
   cursor: pointer;
 }
+
+/* Toast styles (reuse pattern from TalkToLawyer) */
+.lawyer-dashboard-wrapper .toast-container {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 9999;
+}
+.lawyer-dashboard-wrapper .toast {
+  min-width: 260px;
+  max-width: 360px;
+  background: #ffffff;
+  color: #111827;
+  border: 1px solid #e5e7eb;
+  border-left: 4px solid #0d9488;
+  border-radius: 8px;
+  padding: 10px 12px;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+.lawyer-dashboard-wrapper .toast .toast-msg { font-size: 14px; }
+.lawyer-dashboard-wrapper .toast .toast-close {
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  font-size: 16px;
+  cursor: pointer;
+}
+.lawyer-dashboard-wrapper .toast.success { border-left-color: #10b981; }
+.lawyer-dashboard-wrapper .toast.error { border-left-color: #ef4444; }
+.lawyer-dashboard-wrapper .toast.warning { border-left-color: #f59e0b; }
 
 /* Responsive */
 @media (max-width: 1100px) {
@@ -322,5 +443,10 @@
   .lawyer-dashboard-wrapper .ld-recent-chats,
   .lawyer-dashboard-wrapper .ld-sidebar-footer {
     display: none;
+  }
+  .lawyer-dashboard-wrapper .ld-main {
+    margin-left: 0;
+    margin-top: 60px; /* below fixed top bar */
+    height: calc(100vh - 60px);
   }
 }

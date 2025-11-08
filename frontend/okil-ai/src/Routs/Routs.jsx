@@ -9,6 +9,8 @@ import TalkToLawyer from '../User Dashboard/TalkToLawyer';
 import Library from '../User Dashboard/Library';
 import MyAppointments from '../User Dashboard/MyAppointments';
 import MyQueries from '../User Dashboard/MyQueries';
+import UserAppointmentDetails from '../User Dashboard/UserAppointmentDetails';
+import UserQueryDetails from '../User Dashboard/UserQueryDetails';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -66,6 +68,8 @@ export default function Routs() {
       <Route path="/lawyer-dashboard" element={<LawyerDashboard />} />
       <Route path="/lawyer/appointments/:id" element={<AppointmentDetails />} />
       <Route path="/lawyer/queries/:id" element={<QueryDetails />} />
+      <Route path="/user/appointments/:id" element={<UserAppointmentDetails />} />
+      <Route path="/user/queries/:id" element={<UserQueryDetails />} />
       <Route path="/" element={<Navigate to="/login" replace />} />
     </Routes>
   );
