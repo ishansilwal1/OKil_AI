@@ -30,8 +30,7 @@ const TalkToLawyer = () => {
     const user = JSON.parse(localStorage.getItem('okil_user') || '{}');
 
     if (!token) {
-      // App uses Auth at '/'; keep it consistent
-      navigate('/');
+      navigate('/login');
       return;
     }
 

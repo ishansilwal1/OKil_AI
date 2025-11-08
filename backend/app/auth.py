@@ -71,7 +71,7 @@ def register_lawyer(req: LawyerRegisterRequest, db: Session = Depends(get_db)):
 	return UserOut(name=user.name, username=user.username, email=user.email, role=user.role, barCouncilNumber=user.barCouncilNumber)
 
 
-@router.post('/login', response_model=TokenResponse)
+@router.post('/login')
 def login(req: LoginRequest, db: Session = Depends(get_db)):
 	# allow login by email OR username
 	user = db.query(models.User).filter((models.User.email == req.email) | (models.User.username == req.email)).first()
@@ -80,9 +80,11 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
 	if not utils.verify_password(user.password, req.password):
 		raise HTTPException(status_code=401, detail='Invalid credentials')
 
-	# Generate token
-	access = utils.generate_token()
-	token_hash = sha256(access.encode()).hexdigest()
+	# Generate JWT token
+	access_token = utils.create_jwt_token(
+		data={"sub": user.email, "user_id": user.id, "role": user.role}
+	)
+	token_hash = sha256(access_token.encode()).hexdigest()
 	
 	# Clean up expired tokens for this user
 	current_time = datetime.now(timezone.utc)
@@ -102,7 +104,19 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
 	db.add(login_token)
 	db.commit()
 	
-	return TokenResponse(access_token=access, expires_in=3600)
+	# Return response with user info
+	return {
+		"access_token": access_token,
+		"token_type": "bearer",
+		"expires_in": 3600,
+		"user": {
+			"name": user.name,
+			"username": user.username,
+			"email": user.email,
+			"role": user.role,
+			"barCouncilNumber": user.barCouncilNumber if user.role == 'lawyer' else None
+		}
+	}
 
 
 @router.post('/forgot')

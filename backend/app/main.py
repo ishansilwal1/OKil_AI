@@ -1,10 +1,11 @@
 from typing import Union
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from .auth import router as auth_router
 from .api.v1.legal_chat import router as legal_chat_router
+from .api.v1.chat_history import router as chat_history_router
 from . import models
 from .db import init_db
 
@@ -18,11 +19,21 @@ app = FastAPI(
 # In production, narrow this to specific origins.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=["*"],  # Allow all origins for testing
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
+
+# Debug middleware to log all requests
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    print(f"🔍 Request: {request.method} {request.url}")
+    print(f"🔍 Headers: {dict(request.headers)}")
+    response = await call_next(request)
+    print(f"🔍 Response status: {response.status_code}")
+    return response
 
 
 @app.get("/")
@@ -46,6 +57,7 @@ def read_item(item_id: int, q: Union[str, None] = None):
 # Include routers
 app.include_router(auth_router, prefix="/auth", tags=["Authentication"])
 app.include_router(legal_chat_router, prefix="/api/v1/legal", tags=["Legal Chat"])
+app.include_router(chat_history_router, prefix="/api/v1/chat", tags=["Chat History"])
 
 
 @app.on_event("startup")

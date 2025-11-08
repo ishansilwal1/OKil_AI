@@ -10,7 +10,7 @@ export function Tabs() {
     <div className="tabs">
       <button
         className={`tab ${activeTab === 'login' ? 'active' : ''}`}
-        onClick={() => navigate('/')}
+        onClick={() => navigate('/login')}
       >
         Login
       </button>
@@ -59,7 +59,7 @@ export function SignupLoginLink() {
       <button
         type="button"
         className="login-link"
-        onClick={() => navigate('/')}
+        onClick={() => navigate('/login')}
       >
         Login
       </button>

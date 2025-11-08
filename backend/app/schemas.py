@@ -26,6 +26,7 @@ class TokenResponse(BaseModel):
 	access_token: str
 	token_type: str = "bearer"
 	expires_in: int
+	user: 'UserOut'
 
 
 class ForgotRequest(BaseModel):
@@ -43,4 +44,7 @@ class UserOut(BaseModel):
 	email: EmailStr
 	role: Optional[str] = 'user'
 	barCouncilNumber: Optional[str] = None
-	# Do not include password
+	
+
+# Update forward references
+TokenResponse.model_rebuild()

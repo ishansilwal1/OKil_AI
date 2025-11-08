@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import './Auth.css';
 import { Tabs, SignupOptions, SignupLoginLink } from '../Links/MyLinks';
 
@@ -123,16 +125,55 @@ const Auth = () => {
           throw new Error(err.detail || 'Login failed');
         }
         const data = await res.json();
-        // store token
+        console.log('Login response:', data);
+        
+        // store token and user info
         if (data.access_token) {
           localStorage.setItem('okil_token', data.access_token);
+          console.log('Token stored:', data.access_token);
         }
+        if (data.user) {
+          localStorage.setItem('okil_user', JSON.stringify(data.user));
+          console.log('User stored:', data.user);
+        } else {
+          console.error('No user data in response!');
+        }
+        
         setLoginLoading(false);
-        // navigate to home or dashboard
-        navigate('/');
+        
+        // Small delay to ensure localStorage is written
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        console.log('Navigating to /dashboard');
+        console.log('Token check:', localStorage.getItem('okil_token'));
+        console.log('User check:', localStorage.getItem('okil_user'));
+        
+        // Show success toast
+        toast.success('Login successful! Welcome back.', {
+          position: "top-right",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+        
+        // navigate to dashboard
+        navigate('/dashboard', { replace: true });
       } catch (err) {
         setLoginLoading(false);
         setLoginError(err.message || 'Login failed');
+        console.error('Login error:', err);
+        
+        // Show error toast
+        toast.error(err.message || 'Login failed. Please check your credentials.', {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
       }
     })();
   };
@@ -142,6 +183,10 @@ const Auth = () => {
     setSignupError('');
     if (signupData.password !== signupData.confirmPassword) {
       setSignupError('Passwords do not match');
+      toast.error('Passwords do not match', {
+        position: "top-right",
+        autoClose: 3000,
+      });
       return;
     }
     setSignupLoading(true);
@@ -162,11 +207,32 @@ const Auth = () => {
           throw new Error(err.detail || 'Registration failed');
         }
         setSignupLoading(false);
+        
+        // Show success toast
+        toast.success('Registration successful! Please login to continue.', {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+        
         // auto-navigate to login view
-        navigate('/');
+        navigate('/login');
       } catch (err) {
         setSignupLoading(false);
         setSignupError(err.message || 'Registration failed');
+        
+        // Show error toast
+        toast.error(err.message || 'Registration failed. Please try again.', {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
       }
     })();
   };
@@ -176,6 +242,10 @@ const Auth = () => {
     setLawyerSignupError('');
     if (lawyerSignupData.password !== lawyerSignupData.confirmPassword) {
       setLawyerSignupError('Passwords do not match');
+      toast.error('Passwords do not match', {
+        position: "top-right",
+        autoClose: 3000,
+      });
       return;
     }
     setLawyerSignupLoading(true);
@@ -197,10 +267,31 @@ const Auth = () => {
           throw new Error(err.detail || 'Registration failed');
         }
         setLawyerSignupLoading(false);
-        navigate('/');
+        
+        // Show success toast
+        toast.success('Lawyer registration successful! Please login to continue.', {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+        
+        navigate('/login');
       } catch (err) {
         setLawyerSignupLoading(false);
         setLawyerSignupError(err.message || 'Registration failed');
+        
+        // Show error toast
+        toast.error(err.message || 'Lawyer registration failed. Please try again.', {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
       }
     })();
   };
@@ -275,7 +366,7 @@ const Auth = () => {
         setResetStatus('success');
         setResetMessage('Password reset successfully! Redirecting to login...');
         setTimeout(() => {
-          navigate('/');
+          navigate('/login');
         }, 3000);
       } else {
         setResetStatus('error');
@@ -791,7 +882,7 @@ const Auth = () => {
                       <h3>Invalid Reset Link</h3>
                       <p>{resetMessage}</p>
                       <button 
-                        onClick={() => navigate('/')}
+                        onClick={() => navigate('/login')}
                         style={{
                           marginTop: '1rem',
                           padding: '0.75rem 1.5rem',

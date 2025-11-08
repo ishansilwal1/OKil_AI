@@ -29,7 +29,7 @@ const Library = () => {
     const user = JSON.parse(localStorage.getItem('okil_user') || '{}');
 
     if (!token) {
-      navigate('/');
+      navigate('/login');
       return;
     }
     setRole(user.role || 'user');

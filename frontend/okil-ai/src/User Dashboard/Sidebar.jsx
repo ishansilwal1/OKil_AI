@@ -55,7 +55,7 @@ const Sidebar = ({
   const handleSignOut = () => {
     localStorage.removeItem('okil_token');
     localStorage.removeItem('okil_user');
-    navigate('/');
+    navigate('/login');
   };
 
   // Build menu based on role

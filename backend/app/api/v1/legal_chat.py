@@ -69,6 +69,10 @@ async def chat(request: ChatRequest):
     - **history**: Previous chat messages for context
     - **top_k**: Number of relevant documents to retrieve (default: 6)
     """
+    print(f"🔵 Chat endpoint called with message: {request.message[:50]}...")
+    print(f"🔵 History length: {len(request.history)}")
+    print(f"🔵 Top-k: {request.top_k}")
+    
     try:
         # Get RAG system
         rag = get_rag_system()

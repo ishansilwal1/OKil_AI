@@ -3,8 +3,44 @@
   display: flex;
   height: 100vh;
   background-color: #ffffff;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Noto Sans Devanagari', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
   overflow: hidden;
+}
+
+/* ====== Custom Scrollbar ====== */
+.user-dashboard-wrapper .dashboard-chat-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.user-dashboard-wrapper .dashboard-chat-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.user-dashboard-wrapper .dashboard-chat-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 10px;
+}
+
+.user-dashboard-wrapper .dashboard-chat-container::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+.user-dashboard-wrapper .dashboard-recent-chats::-webkit-scrollbar {
+  width: 6px;
+}
+
+.user-dashboard-wrapper .dashboard-recent-chats::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.user-dashboard-wrapper .dashboard-recent-chats::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.user-dashboard-wrapper .dashboard-recent-chats::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
 }
 
 /* ====== Sidebar ====== */
@@ -16,6 +52,7 @@
   flex-direction: column;
   justify-content: space-between;
   transition: all 0.3s ease;
+  flex-shrink: 0;
 }
 
 /* ====== Logo Section ====== */
@@ -140,6 +177,8 @@
   display: flex;
   flex-direction: column;
   background-color: #ffffff;
+  overflow: hidden;
+  min-width: 0;
 }
 
 /* ====== Header ====== */
@@ -218,31 +257,53 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 30px 20px;
+  scroll-behavior: smooth;
+  background-color: #fafbfc;
 }
 
 .user-dashboard-wrapper .dashboard-intro-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
   text-align: center;
 }
 
 .user-dashboard-wrapper .dashboard-intro-text {
-  font-size: 18px;
+  font-size: 24px;
   color: #111827;
-  font-weight: 500;
+  font-weight: 600;
+  line-height: 1.4;
 }
 
 /* ====== Chat Messages ====== */
 .user-dashboard-wrapper .dashboard-chat-messages {
-  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
   width: 100%;
-  max-width: 800px;
-  overflow-y: auto;
+  max-width: 900px;
+  margin: 0 auto;
+  padding-bottom: 20px;
 }
 
 .user-dashboard-wrapper .dashboard-message {
-  margin: 10px 0;
   display: flex;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .user-dashboard-wrapper .dashboard-message-user {
@@ -254,36 +315,101 @@
 }
 
 .user-dashboard-wrapper .dashboard-message-content {
-  background-color: #f1f3f6;
-  color: #111827;
-  padding: 10px 14px;
+  background-color: #ffffff;
+  color: #2c3e50;
+  padding: 20px 26px;
   border-radius: 16px;
-  max-width: 70%;
+  max-width: 80%;
+  font-size: 15px;
+  line-height: 1.8;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  font-family: 'Noto Sans Devanagari', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e5e7eb;
+  font-weight: 400;
 }
 
 .user-dashboard-wrapper .dashboard-message-user .dashboard-message-content {
-  background-color: #153e90;
+  background: linear-gradient(135deg, #4169e1 0%, #3457d5 100%);
   color: #ffffff;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(65, 105, 225, 0.3);
+  border: none;
+}
+
+.user-dashboard-wrapper .dashboard-message-ai .dashboard-message-content {
+  background-color: #f8f9fa;
+  border: 1px solid #e0e4e8;
+  color: #2c3e50;
+}
+
+/* Blue color ONLY for actual headings (short headers), not long paragraphs */
+.user-dashboard-wrapper .dashboard-message-ai .dashboard-message-content .heading-text {
+  color: #1e3a8a;
+  font-weight: 700;
+  display: block;
+  margin: 16px 0 10px 0;
+  font-size: 16px;
+  line-height: 1.7;
+  font-family: 'Noto Sans Devanagari', 'Inter', sans-serif;
+}
+
+/* Regular bold text (not headings) keeps normal color */
+.user-dashboard-wrapper .dashboard-message-ai .dashboard-message-content strong:not(.heading-text),
+.user-dashboard-wrapper .dashboard-message-ai .dashboard-message-content b:not(.heading-text) {
+  font-weight: 600;
+  color: inherit;
+}
+
+/* First heading should be slightly larger and more prominent */
+.user-dashboard-wrapper .dashboard-message-ai .dashboard-message-content .heading-text:first-child {
+  color: #1e3a8a;
+  font-size: 17.5px;
+  font-weight: 700;
+  margin-top: 4px;
+  margin-bottom: 14px;
+}
+
+/* Bullet points and numbered lists */
+.user-dashboard-wrapper .dashboard-message-ai .dashboard-message-content div {
+  margin-bottom: 8px;
+  line-height: 1.8;
+}
+
+/* Style for emoji and special characters */
+.user-dashboard-wrapper .dashboard-message-ai .dashboard-message-content {
+  letter-spacing: 0.01em;
 }
 
 /* ====== Input Section ====== */
 .user-dashboard-wrapper .dashboard-input-section {
   border-top: 1px solid #e5e7eb;
-  padding: 20px 0;
+  padding: 20px;
   display: flex;
   justify-content: center;
   background-color: #ffffff;
+  flex-shrink: 0;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
 }
 
 .user-dashboard-wrapper .dashboard-input-box {
   display: flex;
   align-items: center;
-  width: 80%;
-  max-width: 700px;
-  background-color: #f9fafb;
-  border: 1px solid #d1d5db;
-  border-radius: 30px;
-  padding: 8px 16px;
+  width: 100%;
+  max-width: 900px;
+  background-color: #f8f9fa;
+  border: 2px solid #e5e7eb;
+  border-radius: 28px;
+  padding: 6px 8px 6px 24px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.user-dashboard-wrapper .dashboard-input-box:focus-within {
+  border-color: #4169e1;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 4px rgba(65, 105, 225, 0.12), 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .user-dashboard-wrapper .dashboard-message-input {
@@ -291,25 +417,46 @@
   border: none;
   background: none;
   outline: none;
-  padding: 10px;
+  padding: 14px 12px;
   font-size: 15px;
+  line-height: 1.5;
+  font-family: 'Noto Sans Devanagari', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  color: #2c3e50;
+}
+
+.user-dashboard-wrapper .dashboard-message-input::placeholder {
+  color: #9ca3af;
+  font-weight: 400;
 }
 
 .user-dashboard-wrapper .dashboard-send-btn {
-  background-color: #153e90;
+  background: linear-gradient(135deg, #4169e1 0%, #3457d5 100%);
   border: none;
   border-radius: 50%;
-  width: 38px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: 0.2s ease;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(65, 105, 225, 0.35);
 }
 
 .user-dashboard-wrapper .dashboard-send-btn:hover {
-  background-color: #0f2d68;
+  background: linear-gradient(135deg, #3457d5 0%, #2847c4 100%);
+  transform: scale(1.08);
+  box-shadow: 0 4px 12px rgba(65, 105, 225, 0.45);
+}
+
+.user-dashboard-wrapper .dashboard-send-btn:active {
+  transform: scale(0.95);
+}
+
+.user-dashboard-wrapper .dashboard-send-btn svg {
+  width: 20px;
+  height: 20px;
 }
 
 /* ====== Loading ====== */
@@ -327,30 +474,34 @@
 
 /* For tablets and smaller laptops */
 @media (max-width: 1024px) {
-  .dashboard-sidebar {
+  .user-dashboard-wrapper .dashboard-sidebar {
     width: 200px;
   }
 
-  .dashboard-menu-item {
+  .user-dashboard-wrapper .dashboard-menu-item {
     padding: 10px 18px;
   }
 
-  .dashboard-menu-text {
+  .user-dashboard-wrapper .dashboard-menu-text {
     font-size: 14px;
   }
 
-  .dashboard-input-box {
-    width: 90%;
+  .user-dashboard-wrapper .dashboard-input-box {
+    width: 95%;
+  }
+
+  .user-dashboard-wrapper .dashboard-chat-messages {
+    max-width: 100%;
   }
 }
 
 /* For mobile devices */
 @media (max-width: 768px) {
-  .user-dashboard {
+  .user-dashboard-wrapper .user-dashboard {
     flex-direction: column;
   }
 
-  .dashboard-sidebar {
+  .user-dashboard-wrapper .dashboard-sidebar {
     width: 100%;
     height: 60px;
     flex-direction: row;
@@ -359,56 +510,73 @@
     padding: 0 10px;
   }
 
-  .dashboard-sidebar-header {
+  .user-dashboard-wrapper .dashboard-sidebar-header {
     border: none;
     padding: 0;
   }
 
-  .dashboard-logo-text {
+  .user-dashboard-wrapper .dashboard-logo-text {
     display: none;
   }
 
-  .dashboard-menu,
-  .dashboard-recent-chats,
-  .dashboard-bottom-menu {
+  .user-dashboard-wrapper .dashboard-menu,
+  .user-dashboard-wrapper .dashboard-recent-chats,
+  .user-dashboard-wrapper .dashboard-bottom-menu {
     display: none;
   }
 
-  .dashboard-main-content {
+  .user-dashboard-wrapper .dashboard-main-content {
     flex: 1;
     height: calc(100vh - 60px);
   }
 
-  .dashboard-chat-container {
+  .user-dashboard-wrapper .dashboard-chat-container {
     padding: 10px;
   }
 
-  .dashboard-input-section {
-    padding: 10px;
+  .user-dashboard-wrapper .dashboard-input-section {
+    padding: 12px 10px;
   }
 
-  .dashboard-input-box {
+  .user-dashboard-wrapper .dashboard-input-box {
     width: 100%;
+    max-width: 100%;
   }
 
-  .dashboard-message-content {
+  .user-dashboard-wrapper .dashboard-message-content {
     font-size: 14px;
     max-width: 85%;
+    padding: 12px 16px;
+  }
+
+  .user-dashboard-wrapper .dashboard-intro-text {
+    font-size: 20px;
+    padding: 0 20px;
+  }
+
+  .user-dashboard-wrapper .dashboard-chat-messages {
+    gap: 12px;
   }
 }
 
 /* For very small screens (mobile portrait) */
 @media (max-width: 480px) {
-  .dashboard-send-btn {
-    width: 34px;
-    height: 34px;
+  .user-dashboard-wrapper .dashboard-send-btn {
+    width: 38px;
+    height: 38px;
   }
 
-  .dashboard-message-input {
+  .user-dashboard-wrapper .dashboard-message-input {
     font-size: 14px;
+    padding: 10px 8px;
   }
 
-  .dashboard-intro-text {
-    font-size: 16px;
+  .user-dashboard-wrapper .dashboard-intro-text {
+    font-size: 18px;
+  }
+
+  .user-dashboard-wrapper .dashboard-message-content {
+    font-size: 13px;
+    max-width: 90%;
   }
 }
