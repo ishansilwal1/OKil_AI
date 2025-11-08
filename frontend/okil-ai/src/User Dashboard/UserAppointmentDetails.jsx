@@ -12,6 +12,15 @@ export default function UserAppointmentDetails() {
   const [loading, setLoading] = useState(true);
   const [detail, setDetail] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [toasts, setToasts] = useState([]);
+  const addToast = (message, type = 'success', duration = 3500) => {
+    const id = Date.now() + Math.random();
+    setToasts(prev => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, duration);
+  };
+  const removeToast = (id) => setToasts(prev => prev.filter(t => t.id !== id));
 
   useEffect(() => {
     const token = localStorage.getItem('okil_token');
@@ -29,14 +38,18 @@ export default function UserAppointmentDetails() {
         const all = await res.json();
         const appt = (Array.isArray(all) ? all : []).find(a => String(a.id) === String(id));
         if (!appt) throw new Error('Appointment not found');
-        setDetail({
+        const d = {
           id: appt.id,
           lawyer: { name: `Lawyer #${appt.lawyer_id}` },
           date: appt.date,
           time: appt.time,
           description: appt.description,
           status: appt.status,
-        });
+        };
+        setDetail(d);
+        if (d.status === 'rescheduled') {
+          addToast('Appointment rescheduled', 'success');
+        }
       } catch (e) {
         setDetail(null);
       } finally {
@@ -58,7 +71,7 @@ export default function UserAppointmentDetails() {
 
   const handleCancel = async () => {
     if (!detail) return;
-    if (!window.confirm('Are you sure you want to cancel this appointment?')) return;
+    // This function now performs the actual cancellation; confirmation handled by modal.
     const token = localStorage.getItem('okil_token');
     setBusy(true);
     try {
@@ -76,12 +89,21 @@ export default function UserAppointmentDetails() {
       }
       const updated = await res.json();
       setDetail(prev => ({ ...prev, status: updated.status }));
-      alert('Appointment cancelled. The time will be made available if it has not passed.');
+      addToast('Appointment cancelled', 'warning');
     } catch (e) {
-      alert(e.message || 'Failed to cancel');
+      addToast(e.message || 'Failed to cancel', 'error');
     } finally {
       setBusy(false);
     }
+  };
+
+  // Modal state for confirmation
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const openCancelModal = () => setShowCancelModal(true);
+  const closeCancelModal = () => setShowCancelModal(false);
+  const confirmCancel = async () => {
+    await handleCancel();
+    closeCancelModal();
   };
 
   return (
@@ -91,6 +113,16 @@ export default function UserAppointmentDetails() {
         <div className="details-container">
           <div className="details-title">Appointment Details</div>
           <div className="details-shell">
+            {toasts.length > 0 && (
+              <div className="toast-container" aria-live="polite" aria-atomic="true">
+                {toasts.map(t => (
+                  <div key={t.id} className={`toast ${t.type}`} role="status">
+                    <span className="toast-msg">{t.message}</span>
+                    <button type="button" className="toast-close" onClick={() => removeToast(t.id)} aria-label="Close">×</button>
+                  </div>
+                ))}
+              </div>
+            )}
             {loading && <div>Loading...</div>}
             {!loading && detail && (
               <>
@@ -105,7 +137,7 @@ export default function UserAppointmentDetails() {
                 <div style={{ display:'flex', gap:10, marginTop:16 }}>
                   <button className="back-btn" onClick={() => navigate(-1)}>Back</button>
                   {canCancel(detail) && (
-                    <button className="submit-btn" disabled={busy} onClick={handleCancel}>
+                    <button className="submit-btn" disabled={busy} onClick={openCancelModal}>
                       {busy ? 'Cancelling...' : 'Cancel Appointment'}
                     </button>
                   )}
@@ -113,6 +145,18 @@ export default function UserAppointmentDetails() {
               </>
             )}
             {!loading && !detail && (<div>Not found</div>)}
+            {showCancelModal && (
+              <div className="modal-overlay" role="dialog" aria-modal="true">
+                <div className="modal-content">
+                  <div className="modal-header">Cancel Appointment</div>
+                  <div className="modal-body">Are you sure you want to cancel this appointment?</div>
+                  <div className="modal-actions">
+                    <button className="modal-btn confirm" onClick={confirmCancel} disabled={busy}>{busy ? 'Cancelling...' : 'Yes, Cancel'}</button>
+                    <button className="modal-btn" onClick={closeCancelModal}>Keep</button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </main>

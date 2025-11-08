@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Sidebar from '../Sidebar/Sidebar';
 import './Details.css';
@@ -14,6 +14,7 @@ export default function AppointmentDetails() {
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
   const [rsDate, setRsDate] = useState('');
   const [rsTime, setRsTime] = useState('');
+  const [daySlots, setDaySlots] = useState([]); // availability slots for selected reschedule date
 
   const loadAppointment = async () => {
     const token = localStorage.getItem('okil_token');
@@ -25,6 +26,7 @@ export default function AppointmentDetails() {
       if (!appt) throw new Error('Appointment not found');
       setDetail({
         id: appt.id,
+        lawyer_id: appt.lawyer_id,
         client: { name: `Client #${appt.user_id}`, email: '' },
         date: appt.date,
         time: appt.time,
@@ -64,30 +66,68 @@ export default function AppointmentDetails() {
     return res.json();
   };
 
+  const redirectWithToast = (message, type='success') => {
+    navigate('/lawyer-dashboard', { state: { toast: { message, type } } });
+  };
+
   const handleAccept = async () => {
     try {
       await patchAppointment({ status: 'approved' });
-      await loadAppointment();
-      alert('Appointment accepted');
-    } catch (e) { alert(e.message); }
+      redirectWithToast('Appointment accepted', 'success');
+    } catch (e) {
+      redirectWithToast(e.message || 'Failed to accept appointment', 'error');
+    }
   };
   const handleDecline = async () => {
     try {
       await patchAppointment({ status: 'rejected' });
-      await loadAppointment();
-      alert('Appointment declined');
-    } catch (e) { alert(e.message); }
+      redirectWithToast('Appointment rejected', 'warning');
+    } catch (e) {
+      redirectWithToast(e.message || 'Failed to reject appointment', 'error');
+    }
   };
   const handleReschedule = async (e) => {
     e.preventDefault();
-    if (!rsDate || !rsTime) { alert('Pick date and time'); return; }
+    if (!rsDate || (!rsTime && daySlots.length === 0)) { alert('Pick date and time'); return; }
     try {
-      await patchAppointment({ date: rsDate, time: rsTime });
-      await loadAppointment();
+      let payload;
+      if (daySlots.length > 0 && rsTime === '' && daySlots[0]) {
+        // fallback: first slot
+        payload = { date: rsDate, time: daySlots[0].start_at.slice(11,16) };
+      } else {
+        payload = { date: rsDate, time: rsTime };
+      }
+      await patchAppointment(payload);
       setRescheduleOpen(false);
       setRsDate(''); setRsTime('');
-      alert('Appointment rescheduled');
-    } catch (e) { alert(e.message); }
+      redirectWithToast('Appointment rescheduled', 'success');
+    } catch (e) {
+      redirectWithToast(e.message || 'Failed to reschedule appointment', 'error');
+    }
+  };
+
+  // Fetch availability slots for lawyer when reschedule date changes
+  useEffect(() => {
+    const fetchSlots = async () => {
+      if (!rsDate || !detail) { setDaySlots([]); return; }
+      try {
+        const res = await fetch(`${API_BASE}/lawyers/${detail.lawyer_id}/availability`);
+        const slots = await res.json().catch(()=>[]);
+        const filtered = (Array.isArray(slots)?slots:[]).filter(s => {
+          const d = new Date(s.start_at);
+          const pad = n=>String(n).padStart(2,'0');
+          const ds = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+          return ds === rsDate;
+        });
+        setDaySlots(filtered);
+      } catch { setDaySlots([]); }
+    };
+    fetchSlots();
+  }, [rsDate, detail, API_BASE]);
+
+  const slotLabel = s => {
+    const d = new Date(s.start_at);
+    return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
   };
 
   return (
@@ -130,18 +170,49 @@ export default function AppointmentDetails() {
                   </div>
 
                   {rescheduleOpen && (
-                    <form onSubmit={handleReschedule} style={{ display:'flex', gap:8, alignItems:'end', marginBottom: 12 }}>
-                      <div>
-                        <label className="details-section-label">New Date</label>
-                        <input type="date" value={rsDate} onChange={e=>setRsDate(e.target.value)} />
+                    <form onSubmit={handleReschedule} style={{ display:'flex', flexDirection:'column', gap:12, marginBottom: 12 }}>
+                      <div style={{ display:'flex', gap:12 }}>
+                        <div>
+                          <label className="details-section-label">New Date</label>
+                          <input type="date" value={rsDate} onChange={e=>{setRsDate(e.target.value); setRsTime('');}} />
+                        </div>
+                        <div>
+                          <label className="details-section-label">Manual Time (optional)</label>
+                          <input type="time" value={rsTime} onChange={e=>setRsTime(e.target.value)} />
+                        </div>
                       </div>
                       <div>
-                        <label className="details-section-label">New Time</label>
-                        <input type="time" value={rsTime} onChange={e=>setRsTime(e.target.value)} />
+                        <label className="details-section-label">Available Slots For Selected Date</label>
+                        {rsDate && daySlots.length === 0 && (
+                          <div style={{ fontSize:12, color:'#666' }}>No generated availability slots for this date.</div>
+                        )}
+                        {daySlots.length > 0 && (
+                          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(80px,1fr))', gap:8 }}>
+                            {daySlots.map(s => (
+                              <button type="button" key={s.id} onClick={()=>{ const t = new Date(s.start_at); const hh = String(t.getHours()).padStart(2,'0'); const mm = String(t.getMinutes()).padStart(2,'0'); setRsTime(`${hh}:${mm}`); }}
+                                className="slot-btn-mini"
+                                style={{
+                                  padding:'8px 6px',
+                                  border:'1px solid '+(rsTime === (new Date(s.start_at).getHours().toString().padStart(2,'0')+":"+new Date(s.start_at).getMinutes().toString().padStart(2,'0')) ? '#0d9488' : '#d1d5db'),
+                                  background: rsTime === (new Date(s.start_at).getHours().toString().padStart(2,'0')+":"+new Date(s.start_at).getMinutes().toString().padStart(2,'0')) ? '#0d9488' : '#fff',
+                                  color: rsTime === (new Date(s.start_at).getHours().toString().padStart(2,'0')+":"+new Date(s.start_at).getMinutes().toString().padStart(2,'0')) ? '#fff' : '#111827',
+                                  borderRadius:6,
+                                  fontSize:12,
+                                  cursor:'pointer'
+                                }}
+                              >
+                                {slotLabel(s)}
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
                       <div>
-                        <button className="btn btn-reschedule" type="submit">Save</button>
+                        <button className="btn btn-reschedule" type="submit" disabled={!rsDate || (!rsTime && daySlots.length===0)}>Save Reschedule</button>
                       </div>
+                      {rsDate && rsTime && (
+                        <div style={{fontSize:12, color:'#374151'}}>Selected new time: <strong>{rsDate} {rsTime}</strong></div>
+                      )}
                     </form>
                   )}
                 </>

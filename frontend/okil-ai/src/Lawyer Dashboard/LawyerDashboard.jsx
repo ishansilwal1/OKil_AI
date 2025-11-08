@@ -1,10 +1,11 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useMemo, useState, useRef } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import "./LawyerDashboard.css";
 import Sidebar from "../Sidebar/Sidebar";
 
 const LawyerDashboard = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
   const [recentChats] = useState([]);
@@ -19,6 +20,17 @@ const LawyerDashboard = () => {
   const [selectedDay, setSelectedDay] = useState(null);
   const [slotForm, setSlotForm] = useState({ startTime: "", endTime: "" });
   const [me, setMe] = useState({ id: null, role: null, name: "" });
+
+  // Toasts
+  const [toasts, setToasts] = useState([]);
+  const addToast = (message, type = "success", duration = 3500) => {
+    const id = Date.now() + Math.random();
+    setToasts((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, duration);
+  };
+  const removeToast = (id) => setToasts((prev) => prev.filter((t) => t.id !== id));
 
   // Load initial data
   useEffect(() => {
@@ -65,6 +77,19 @@ const LawyerDashboard = () => {
       }
     })();
   }, [navigate]);
+
+  // Show toast when redirected with state from other pages (e.g., AppointmentDetails)
+  const toastHandledRef = useRef(false);
+  useEffect(() => {
+    const toast = location.state && location.state.toast;
+    if (toast && !toastHandledRef.current) {
+      toastHandledRef.current = true; // guard against double-fire (React 18 StrictMode)
+      addToast(toast.message, toast.type || "success");
+      navigate(location.pathname, { replace: true, state: {} });
+      // Reset ref after a tick so future navigations can show new toasts
+      setTimeout(() => { toastHandledRef.current = false; }, 100);
+    }
+  }, [location, navigate]);
 
   const today = new Date();
   const [viewYear, setViewYear] = useState(today.getFullYear());
@@ -240,6 +265,16 @@ const LawyerDashboard = () => {
             <div style={{ padding: 24 }}>Loading...</div>
           ) : (
             <>
+              {toasts.length > 0 && (
+                <div className="toast-container" aria-live="polite" aria-atomic="true">
+                  {toasts.map((t) => (
+                    <div key={t.id} className={`toast ${t.type}`} role="status">
+                      <span className="toast-msg">{t.message}</span>
+                      <button type="button" className="toast-close" onClick={() => removeToast(t.id)} aria-label="Close">×</button>
+                    </div>
+                  ))}
+                </div>
+              )}
               {/* Top row: greeting + stats | calendar */}
               <section className="ld-top">
                 <div className="ld-greeting">
@@ -505,24 +540,36 @@ const LawyerDashboard = () => {
                 <div className="ld-card">
                   <div className="ld-card-head">Appointments Booked</div>
                   <div className="ld-list">
-                    {appointments.slice(0, 3).map((a) => {
+                    {appointments.slice(0, 50).map((a) => {
                       const dateStr = a.date
                         ? new Date(a.date).toLocaleDateString()
                         : "—";
                       const timeStr = a.time ? a.time : "";
+                      const statusLabelMap = {
+                        approved: 'Accepted',
+                        rescheduled: 'Rescheduled',
+                        rejected: 'Rejected',
+                        pending: 'Pending',
+                        cancelled: 'Cancelled',
+                        completed: 'Completed',
+                      };
+                      const statusLabel = statusLabelMap[a.status] || a.status;
                       return (
                         <div key={a.id} className="ld-list-row">
                           <span>
                             Client #{a.user_id} · {dateStr} {timeStr}
                           </span>
-                          <button
-                            className="ld-btn"
-                            onClick={() =>
-                              navigate(`/lawyer/appointments/${a.id}`)
-                            }
-                          >
-                            View
-                          </button>
+                          <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+                            <span className={`ld-status status-${a.status}`}>{statusLabel}</span>
+                            <button
+                              className="ld-btn"
+                              onClick={() =>
+                                navigate(`/lawyer/appointments/${a.id}`)
+                              }
+                            >
+                              View
+                            </button>
+                          </div>
                         </div>
                       );
                     })}

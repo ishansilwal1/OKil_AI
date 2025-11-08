@@ -79,7 +79,7 @@ def create_appointment(
             models.Appointment.lawyer_id == req.lawyer_id,
             cast(models.Appointment.date, SA_Date) == appt_date,
             cast(models.Appointment.time, SA_Time) == appt_time,
-            models.Appointment.status.in_(['pending', 'approved', 'completed'])
+            models.Appointment.status.in_(['pending', 'approved', 'completed', 'rescheduled'])
         ).first()
         if conflict:
             raise HTTPException(status_code=409, detail="Lawyer is not available at the selected time")
@@ -197,6 +197,9 @@ def update_appointment(
         if appt.status in ['cancelled','rejected']:
             raise HTTPException(status_code=400, detail="Cannot reschedule a cancelled/rejected appointment")
 
+        # Track previous time to annotate description
+        prev_date, prev_time = appt.date, appt.time
+
         # Use slot_id if provided
         if req.slot_id is not None:
             slot = db.query(models.AvailabilitySlot).filter(
@@ -220,16 +223,25 @@ def update_appointment(
                 cast(models.Appointment.date, SA_Date) == req.date,
                 cast(models.Appointment.time, SA_Time) == req.time,
                 models.Appointment.id != appt.id,
-                models.Appointment.status.in_(['pending','approved','completed'])
+                models.Appointment.status.in_(['pending','approved','completed','rescheduled'])
             ).first()
             if conflict:
                 raise HTTPException(status_code=409, detail="Lawyer busy at chosen time")
             appt.date = req.date
             appt.time = req.time
 
-        # When rescheduling, reset status to pending unless explicitly approved in same request
+        # When rescheduling, set status to 'rescheduled' unless explicitly provided
         if not req.status:
-            appt.status = 'pending'
+            appt.status = 'rescheduled'
+
+        # Annotate description with previous time info (persisted in DB)
+        if prev_date and prev_time:
+            try:
+                prev_label = f"{prev_date.isoformat()} {prev_time.isoformat(timespec='minutes')}"
+            except Exception:
+                prev_label = f"{prev_date} {prev_time}"
+            note = f" (Rescheduled from {prev_label})"
+            appt.description = (appt.description or '') + note
 
     db.add(appt)
     db.commit()
@@ -338,20 +350,28 @@ def get_lawyer_availability(lawyer_id: int, db: Session = Depends(get_db)):
     return slots
 
 
-@router.post("/lawyers/availability", response_model=AvailabilitySlotOut)
+@router.post("/lawyers/availability", response_model=List[AvailabilitySlotOut])
 def create_availability_slot(
     req: AvailabilitySlotCreate,
     current=Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    # Only lawyers can create availability
+    """Create availability by auto-splitting the provided window into 30-minute slots.
+
+    Business rules:
+    - Only lawyers can create availability windows.
+    - Reject if end_at <= start_at.
+    - Reject if the requested window overlaps any existing slot for the lawyer.
+    - Split the window into contiguous 30-minute segments; ignore any trailing remainder < 30 minutes.
+    - Return the list of created (unbooked) slots.
+    """
     if current['role'] != 'lawyer':
         raise HTTPException(status_code=403, detail="Only lawyers can add availability")
 
     if req.end_at <= req.start_at:
         raise HTTPException(status_code=400, detail="end_at must be after start_at")
 
-    # Prevent overlapping with existing slots for the lawyer (basic check)
+    # Overlap check against any existing slot in the requested window
     overlap = db.query(models.AvailabilitySlot).filter(
         models.AvailabilitySlot.lawyer_id == current['id'],
         models.AvailabilitySlot.end_at > req.start_at,
@@ -360,13 +380,26 @@ def create_availability_slot(
     if overlap:
         raise HTTPException(status_code=409, detail="Overlapping availability slot exists")
 
-    slot = models.AvailabilitySlot(
-        lawyer_id=current['id'],
-        start_at=req.start_at,
-        end_at=req.end_at,
-        is_booked=False
-    )
-    db.add(slot)
+    # Generate 30-minute segments
+    segment_start = req.start_at
+    segment_length = timedelta(minutes=30)
+    created_slots: List[models.AvailabilitySlot] = []
+    while segment_start + segment_length <= req.end_at:
+        segment_end = segment_start + segment_length
+        slot = models.AvailabilitySlot(
+            lawyer_id=current['id'],
+            start_at=segment_start,
+            end_at=segment_end,
+            is_booked=False
+        )
+        db.add(slot)
+        created_slots.append(slot)
+        segment_start = segment_end
+
+    # Persist all
     db.commit()
-    db.refresh(slot)
-    return slot
+    # Refresh each to populate IDs
+    for s in created_slots:
+        db.refresh(s)
+
+    return created_slots

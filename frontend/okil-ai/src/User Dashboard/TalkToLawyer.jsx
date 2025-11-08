@@ -11,9 +11,19 @@ const TalkToLawyer = () => {
   const [recordsView, setRecordsView] = useState(null); // null | 'appointments' | 'queries'
   const [selectedLawyer, setSelectedLawyer] = useState(null);
   const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
-  const [availability, setAvailability] = useState([]); // list of slots
+  const [availability, setAvailability] = useState([]); // list of 30-min slots
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedSlotId, setSelectedSlotId] = useState(null);
+  // Toast notifications (corner, auto-dismiss)
+  const [toasts, setToasts] = useState([]);
+  const addToast = (message, type = 'success', duration = 3500) => {
+    const id = Date.now() + Math.random();
+    setToasts((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, duration);
+  };
+  const removeToast = (id) => setToasts((prev) => prev.filter((t) => t.id !== id));
   const [myAppointments, setMyAppointments] = useState([]);
   const [apptLoading, setApptLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -185,7 +195,7 @@ const TalkToLawyer = () => {
           throw new Error(err.detail || 'Failed to create appointment');
         }
         await res.json();
-        alert('Appointment request sent! A lawyer will contact you shortly.');
+        addToast('Appointment request sent! A lawyer will contact you shortly.', 'success');
         setCurrentView('list');
         setFormData({
           name: '',
@@ -198,7 +208,13 @@ const TalkToLawyer = () => {
         });
         setSelectedSlotId(null);
       } catch (error) {
-        alert(error.message || 'Failed to book appointment');
+        // Detect slot already booked conflict and show corner toast
+        if ((error.message || '').toLowerCase().includes('already been booked')) {
+          addToast('Sorry, that time slot was just taken. Please pick another available time.', 'error');
+          if (selectedLawyer) fetchAvailability(selectedLawyer.id);
+        } else {
+          addToast(error.message || 'Failed to book appointment', 'error');
+        }
       }
     })();
   };
@@ -227,7 +243,7 @@ const TalkToLawyer = () => {
           throw new Error(err.detail || 'Failed to submit query');
         }
         await res.json();
-        alert('Query submitted! A lawyer will respond via email.');
+        addToast('Query submitted! A lawyer will respond via email.', 'success');
         setCurrentView('list');
         setFormData({
           name: '',
@@ -240,7 +256,7 @@ const TalkToLawyer = () => {
         });
       } catch (error) {
         console.error('Submit query error:', error);
-        alert(error.message || 'Failed to submit query');
+        addToast(error.message || 'Failed to submit query', 'error');
       }
     })();
   };
@@ -469,13 +485,7 @@ const TalkToLawyer = () => {
                   <label className="form-label">
                     <span className="required">*</span> Select Time
                   </label>
-                  <select
-                    className="form-input"
-                    value={selectedSlotId || ''}
-                    onChange={(e) => setSelectedSlotId(parseInt(e.target.value, 10))}
-                    required
-                  >
-                    <option value="" disabled>Select a time</option>
+                  <div className="slot-grid">
                     {availability
                       .filter(s => {
                         const d = new Date(s.start_at);
@@ -486,9 +496,20 @@ const TalkToLawyer = () => {
                       .map(s => {
                         const t = new Date(s.start_at);
                         const label = t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                        return <option key={s.id} value={s.id}>{label}</option>
+                        const selected = selectedSlotId === s.id;
+                        return (
+                          <button
+                            type="button"
+                            key={s.id}
+                            className={`slot-btn ${selected ? 'selected' : ''}`}
+                            onClick={() => setSelectedSlotId(s.id)}
+                            aria-pressed={selected}
+                          >
+                            {label}
+                          </button>
+                        );
                       })}
-                  </select>
+                  </div>
                   {selectedDate && availability.filter(s => {
                       const d = new Date(s.start_at);
                       const pad = (n) => String(n).padStart(2, '0');
@@ -498,6 +519,17 @@ const TalkToLawyer = () => {
                     <small style={{ color: '#888' }}>No times for the selected date.</small>
                   )}
                 </div>
+                {/* Toasts (corner notifications) */}
+                {toasts.length > 0 && (
+                  <div className="toast-container" aria-live="polite" aria-atomic="true">
+                    {toasts.map((t) => (
+                      <div key={t.id} className={`toast ${t.type}`} role="status">
+                        <span className="toast-msg">{t.message}</span>
+                        <button type="button" className="toast-close" onClick={() => removeToast(t.id)} aria-label="Close">×</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 <div className="form-group">
                   <label className="form-label">
@@ -600,6 +632,17 @@ const TalkToLawyer = () => {
                 </div>
               </form>
             </div>
+          </div>
+        )}
+        {/* Global Toasts (always mounted within this page) */}
+        {toasts.length > 0 && (
+          <div className="toast-container" aria-live="polite" aria-atomic="true">
+            {toasts.map((t) => (
+              <div key={t.id} className={`toast ${t.type}`} role="status">
+                <span className="toast-msg">{t.message}</span>
+                <button type="button" className="toast-close" onClick={() => removeToast(t.id)} aria-label="Close">×</button>
+              </div>
+            ))}
           </div>
         )}
       </div>

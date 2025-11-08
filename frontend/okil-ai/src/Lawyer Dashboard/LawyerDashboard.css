@@ -329,7 +329,8 @@
   background: #fff;
   display: flex;
   flex-direction: column;
-  max-height: 400px; /* cap height so inner list scrolls */
+  height: 360px; /* fixed height for each panel */
+  overflow: hidden; /* clip inner scrolling area */
 }
 
 .lawyer-dashboard-wrapper .ld-card-head {
@@ -337,6 +338,10 @@
   font-weight: 600;
   color: #58b8ad;
   border-bottom: 1px solid #e6e9ef;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 1;
 }
 
 .lawyer-dashboard-wrapper .ld-list {
@@ -356,6 +361,21 @@
   background: #f9fafb;
 }
 
+/* Appointment status pills */
+.lawyer-dashboard-wrapper .ld-status {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  text-transform: capitalize;
+}
+.lawyer-dashboard-wrapper .status-pending { background:#fff7ed; color:#b45309; border-color:#fed7aa; }
+.lawyer-dashboard-wrapper .status-approved { background:#ecfdf5; color:#065f46; border-color:#a7f3d0; }
+.lawyer-dashboard-wrapper .status-rejected { background:#fef2f2; color:#991b1b; border-color:#fecaca; }
+.lawyer-dashboard-wrapper .status-cancelled { background:#f3f4f6; color:#374151; border-color:#e5e7eb; }
+.lawyer-dashboard-wrapper .status-completed { background:#eef2ff; color:#3730a3; border-color:#c7d2fe; }
+.lawyer-dashboard-wrapper .status-rescheduled { background:#fffbeb; color:#92400e; border-color:#fde68a; }
+
 .lawyer-dashboard-wrapper .ld-btn {
   background: #0f9d8a;
   color: #fff;
@@ -364,6 +384,44 @@
   border-radius: 8px;
   cursor: pointer;
 }
+
+/* Toast styles (reuse pattern from TalkToLawyer) */
+.lawyer-dashboard-wrapper .toast-container {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 9999;
+}
+.lawyer-dashboard-wrapper .toast {
+  min-width: 260px;
+  max-width: 360px;
+  background: #ffffff;
+  color: #111827;
+  border: 1px solid #e5e7eb;
+  border-left: 4px solid #0d9488;
+  border-radius: 8px;
+  padding: 10px 12px;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+.lawyer-dashboard-wrapper .toast .toast-msg { font-size: 14px; }
+.lawyer-dashboard-wrapper .toast .toast-close {
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  font-size: 16px;
+  cursor: pointer;
+}
+.lawyer-dashboard-wrapper .toast.success { border-left-color: #10b981; }
+.lawyer-dashboard-wrapper .toast.error { border-left-color: #ef4444; }
+.lawyer-dashboard-wrapper .toast.warning { border-left-color: #f59e0b; }
 
 /* Responsive */
 @media (max-width: 1100px) {

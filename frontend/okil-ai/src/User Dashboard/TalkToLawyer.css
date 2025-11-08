@@ -438,6 +438,34 @@
   margin-top: 28px;
 }
 
+/* ====== Slot Grid ====== */
+.talk-to-lawyer-wrapper .slot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.talk-to-lawyer-wrapper .slot-btn {
+  background:#ffffff;
+  border:1px solid #d1d5db;
+  border-radius:8px;
+  padding:10px 6px;
+  font-size:13px;
+  font-weight:500;
+  cursor:pointer;
+  color:#111827;
+  transition: all 0.15s ease;
+  box-shadow:0 1px 2px rgba(0,0,0,0.04);
+}
+.talk-to-lawyer-wrapper .slot-btn:hover { border-color:#0d9488; color:#0d9488; }
+.talk-to-lawyer-wrapper .slot-btn.selected {
+  background:#0d9488;
+  color:#ffffff;
+  border-color:#0d9488;
+  box-shadow:0 0 0 2px rgba(13,148,136,0.25);
+}
+
 .talk-to-lawyer-wrapper .submit-btn,
 .talk-to-lawyer-wrapper .back-btn {
   flex: 1;
@@ -449,6 +477,58 @@
   cursor: pointer;
   transition: all 0.2s ease;
 }
+
+/* ====== Toasts (corner notifications) ====== */
+.talk-to-lawyer-wrapper .toast-container {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 9999;
+}
+.details-wrapper .toast-container {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  z-index:10000;
+}
+.talk-to-lawyer-wrapper .toast {
+  min-width: 260px;
+  max-width: 360px;
+  background: #ffffff;
+  color: #111827;
+  border: 1px solid #e5e7eb;
+  border-left: 4px solid #0d9488;
+  border-radius: 8px;
+  padding: 10px 12px;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.talk-to-lawyer-wrapper .toast .toast-msg { font-size: 14px; }
+.talk-to-lawyer-wrapper .toast .toast-close {
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  font-size: 16px;
+  cursor: pointer;
+}
+.talk-to-lawyer-wrapper .toast.success { border-left-color: #10b981; }
+.talk-to-lawyer-wrapper .toast.error { border-left-color: #ef4444; }
+.talk-to-lawyer-wrapper .toast.warning { border-left-color: #f59e0b; }
+.details-wrapper .toast { min-width:260px; max-width:360px; background:#fff; color:#111827; border:1px solid #e5e7eb; border-left:4px solid #0d9488; border-radius:8px; padding:10px 12px; box-shadow:0 6px 14px rgba(0,0,0,0.08); display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.details-wrapper .toast.success { border-left-color:#10b981; }
+.details-wrapper .toast.error { border-left-color:#ef4444; }
+.details-wrapper .toast.warning { border-left-color:#f59e0b; }
+.details-wrapper .toast .toast-msg { font-size:14px; }
+.details-wrapper .toast .toast-close { background:transparent; border:none; color:#6b7280; font-size:16px; cursor:pointer; }
 
 /* Refresh button in record headers (should not stretch) */
 .talk-to-lawyer-wrapper .refresh-btn {
