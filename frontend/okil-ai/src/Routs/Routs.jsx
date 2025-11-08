@@ -6,13 +6,13 @@ import LawyerDashboard from '../Lawyer Dashboard/LawyerDashboard';
 import AppointmentDetails from '../Lawyer Dashboard/AppointmentDetails';
 import QueryDetails from '../Lawyer Dashboard/QueryDetails';
 import TalkToLawyer from '../User Dashboard/TalkToLawyer';
-import Library from '../User Dashboard/Library';
+import Library from '../Library/Library';
 import MyAppointments from '../User Dashboard/MyAppointments';
 import MyQueries from '../User Dashboard/MyQueries';
 import UserAppointmentDetails from '../User Dashboard/UserAppointmentDetails';
 import UserQueryDetails from '../User Dashboard/UserQueryDetails';
 
-// Protected Route Component
+// Protected Route Component 
 const ProtectedRoute = ({ children }) => {
   const [isChecking, setIsChecking] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
