@@ -14,6 +14,8 @@ class User(Base):
     password = Column(String, nullable=False)
     role = Column(String, default='user')
     barCouncilNumber = Column(String, unique=True, nullable=True)
+    # Lawyer's area of expertise; nullable for normal users
+    expertise = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relationships

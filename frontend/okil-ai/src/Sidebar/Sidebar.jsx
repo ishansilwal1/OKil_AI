@@ -48,8 +48,7 @@ const Sidebar = ({
   };
 
   const handleSettings = () => {
-    // TODO: Navigate to settings page
-    console.log('Navigate to settings');
+    navigate('/settings');
   };
 
   const handleSignOut = () => {

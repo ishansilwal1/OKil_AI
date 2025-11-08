@@ -43,7 +43,7 @@ def register_user(req: UserRegisterRequest, db: Session = Depends(get_db)):
 	db.add(user)
 	db.commit()
 	db.refresh(user)
-	return UserOut(name=user.name, username=user.username, email=user.email, role=user.role)
+	return UserOut(name=user.name, username=user.username, email=user.email, role=user.role, barCouncilNumber=None, expertise=None)
 
 
 @router.post('/register/lawyer', response_model=UserOut)
@@ -63,12 +63,13 @@ def register_lawyer(req: LawyerRegisterRequest, db: Session = Depends(get_db)):
 		email=req.email,
 		password=utils.hash_password(req.password),
 		role='lawyer',
-		barCouncilNumber=req.barCouncilNumber
+		barCouncilNumber=req.barCouncilNumber,
+		expertise=getattr(req, 'expertise', None)
 	)
 	db.add(user)
 	db.commit()
 	db.refresh(user)
-	return UserOut(name=user.name, username=user.username, email=user.email, role=user.role, barCouncilNumber=user.barCouncilNumber)
+	return UserOut(name=user.name, username=user.username, email=user.email, role=user.role, barCouncilNumber=user.barCouncilNumber, expertise=user.expertise)
 
 
 @router.post('/login', response_model=TokenResponse)
@@ -224,7 +225,8 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
 		'email': user.email,
 		'username': user.username,
 		'role': user.role or 'user',
-		'barCouncilNumber': user.barCouncilNumber
+		'barCouncilNumber': user.barCouncilNumber,
+		'expertise': getattr(user, 'expertise', None)
 	}
 
 

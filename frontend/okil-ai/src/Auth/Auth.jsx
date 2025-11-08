@@ -50,6 +50,7 @@ const Auth = () => {
     name: '',
     username: '',
     barCouncilNumber: '',
+    expertise: '',
     email: '',
     password: '',
     confirmPassword: ''
@@ -211,6 +212,7 @@ const Auth = () => {
             name: lawyerSignupData.name,
             username: lawyerSignupData.username,
             barCouncilNumber: lawyerSignupData.barCouncilNumber,
+            expertise: lawyerSignupData.expertise || null,
             email: lawyerSignupData.email,
             password: lawyerSignupData.password
           })
@@ -538,6 +540,21 @@ const Auth = () => {
                           placeholder="Enter your BAR council number"
                           className="form-input"
                           required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="expertise" className="form-label">Experties</label>
+                      <div className="input-container">
+                        <input
+                          type="text"
+                          id="expertise"
+                          name="expertise"
+                          value={lawyerSignupData.expertise}
+                          onChange={handleLawyerSignupInputChange}
+                          placeholder="e.g. Family Law, Corporate, Criminal"
+                          className="form-input"
                         />
                       </div>
                     </div>

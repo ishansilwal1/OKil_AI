@@ -14,6 +14,7 @@ class LawyerRegisterRequest(BaseModel):
 	name: str
 	username: str
 	barCouncilNumber: str
+	expertise: Optional[str] = None
 	email: EmailStr
 	password: str
 
@@ -44,6 +45,7 @@ class UserOut(BaseModel):
 	email: EmailStr
 	role: Optional[str] = 'user'
 	barCouncilNumber: Optional[str] = None
+	expertise: Optional[str] = None
 	# Do not include password
 
 
@@ -53,6 +55,7 @@ class LawyerOut(BaseModel):
 	username: str
 	email: EmailStr
 	barCouncilNumber: Optional[str] = None
+	expertise: Optional[str] = None
 
 	class Config:
 		from_attributes = True

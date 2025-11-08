@@ -33,6 +33,7 @@ def list_lawyers(db: Session = Depends(get_db)):
             username=l.username,
             email=l.email,
             barCouncilNumber=l.barCouncilNumber,
+            expertise=getattr(l, 'expertise', None),
         ) for l in lawyers
     ]
 
