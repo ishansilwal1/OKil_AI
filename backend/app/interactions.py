@@ -60,6 +60,10 @@ def create_appointment(
             raise HTTPException(status_code=404, detail="Availability slot not found")
         if slot.is_booked:
             raise HTTPException(status_code=409, detail="This slot has already been booked")
+        # Check if slot time has expired
+        now_utc = datetime.now(timezone.utc)
+        if slot.start_at < now_utc:
+            raise HTTPException(status_code=400, detail="Cannot book an expired time slot")
         preferred_at = slot.start_at
 
     # Optional: basic conflict check (lawyer has another appointment at the same time)
@@ -72,6 +76,22 @@ def create_appointment(
     elif req.date is not None and req.time is not None:
         appt_date = req.date
         appt_time = req.time
+
+    # Validate that the appointment time is not in the past
+    if appt_date is not None and appt_time is not None:
+        try:
+            # Combine date and time to create a datetime object
+            appt_datetime = datetime.combine(appt_date, appt_time)
+            # Assume appointment times are in UTC or compare with current local time
+            # For timezone-aware comparison, treat as UTC
+            appt_datetime_utc = appt_datetime.replace(tzinfo=timezone.utc)
+            now_utc = datetime.now(timezone.utc)
+            if appt_datetime_utc < now_utc:
+                raise HTTPException(status_code=400, detail="Cannot book an appointment for a past time")
+        except HTTPException:
+            raise
+        except Exception:
+            pass  # If datetime parsing fails, continue (edge case)
 
     # Basic conflict check
     if appt_date is not None and appt_time is not None:
@@ -115,7 +135,31 @@ def list_appointments(
         q = db.query(models.Appointment).filter(models.Appointment.lawyer_id == current['id'])
     else:
         q = db.query(models.Appointment).filter(models.Appointment.user_id == current['id'])
-    return q.order_by(models.Appointment.created_at.desc()).all()
+    
+    appointments = q.order_by(models.Appointment.created_at.desc()).all()
+    
+    # Auto-expire past appointments that are still pending or approved
+    now_utc = datetime.now(timezone.utc)
+    for appt in appointments:
+        if appt.date and appt.time and appt.status in ['pending', 'approved']:
+            try:
+                # Combine date and time and treat as UTC
+                appt_datetime = datetime.combine(appt.date, appt.time).replace(tzinfo=timezone.utc)
+                # If appointment time has passed, auto-cancel it
+                if appt_datetime < now_utc:
+                    appt.status = 'cancelled'
+                    db.add(appt)
+            except Exception:
+                pass  # Skip if datetime parsing fails
+    
+    # Commit any status changes
+    db.commit()
+    
+    # Refresh to get updated status
+    for appt in appointments:
+        db.refresh(appt)
+    
+    return appointments
 
 
 @router.patch("/appointments/{appointment_id}", response_model=AppointmentOut)
@@ -143,6 +187,19 @@ def update_appointment(
             raise HTTPException(status_code=403, detail="Only lawyer can set this status")
         if req.status == 'cancelled' and current['id'] not in {appt.user_id, appt.lawyer_id}:
             raise HTTPException(status_code=403, detail="Not authorized to cancel")
+        
+        # Prevent approving expired appointments
+        if req.status == 'approved' and appt.date and appt.time:
+            try:
+                appt_datetime = datetime.combine(appt.date, appt.time).replace(tzinfo=timezone.utc)
+                now_utc = datetime.now(timezone.utc)
+                if appt_datetime < now_utc:
+                    raise HTTPException(status_code=400, detail="Cannot approve an appointment with an expired date/time")
+            except HTTPException:
+                raise
+            except Exception:
+                pass  # Skip validation if datetime parsing fails
+        
         appt.status = req.status
 
         # If a future appointment is cancelled, free the associated availability slot (if any)
@@ -362,6 +419,7 @@ def create_availability_slot(
     Business rules:
     - Only lawyers can create availability windows.
     - Reject if end_at <= start_at.
+    - Reject if the requested window is in the past.
     - Reject if the requested window overlaps any existing slot for the lawyer.
     - Split the window into contiguous 30-minute segments; ignore any trailing remainder < 30 minutes.
     - Return the list of created (unbooked) slots.
@@ -371,6 +429,13 @@ def create_availability_slot(
 
     if req.end_at <= req.start_at:
         raise HTTPException(status_code=400, detail="end_at must be after start_at")
+
+    # Prevent creating availability slots in the past
+    now_utc = datetime.now(timezone.utc)
+    if req.start_at < now_utc:
+        raise HTTPException(status_code=400, detail="Cannot create availability for a past date/time")
+    if req.end_at < now_utc:
+        raise HTTPException(status_code=400, detail="Cannot create availability for a past date/time")
 
     # Overlap check against any existing slot in the requested window
     overlap = db.query(models.AvailabilitySlot).filter(

@@ -209,6 +209,21 @@
   font-weight: 600;
 }
 
+.lawyer-dashboard-wrapper .ld-cal-cell.selected {
+  background: #14a58a;
+  color: #fff;
+  font-weight: 600;
+  border-color: #14a58a;
+}
+
+.lawyer-dashboard-wrapper .ld-cal-cell.past {
+  color: #d1d5db;
+  background: #f9fafb;
+  cursor: not-allowed;
+  pointer-events: none;
+  opacity: 0.5;
+}
+
 .lawyer-dashboard-wrapper .ld-upcoming {
   margin-top: 10px;
   border-top: 1px dashed #e6e9ef;
@@ -275,7 +290,7 @@
 .lawyer-dashboard-wrapper .ld-slot-table-wrapper tr { display: flex; }
 .lawyer-dashboard-wrapper .ld-slot-table-wrapper th,
 .lawyer-dashboard-wrapper .ld-slot-table-wrapper td { flex: 1; }
-.lawyer-dashboard-wrapper .ld-slot-table-wrapper tbody { overflow-y: auto; max-height: 90px; }
+.lawyer-dashboard-wrapper .ld-slot-table-wrapper tbody { overflow-y: auto; max-height: 175px; }
 
 .lawyer-dashboard-wrapper .ld-upcoming-item {
   display: flex;
@@ -329,7 +344,7 @@
   background: #fff;
   display: flex;
   flex-direction: column;
-  height: 360px; /* fixed height for each panel */
+  height: 300px; /* fixed height for each panel */
   overflow: hidden; /* clip inner scrolling area */
 }
 
@@ -383,6 +398,190 @@
   padding: 8px 14px;
   border-radius: 8px;
   cursor: pointer;
+}
+
+/* Modern Availability Card Styles */
+.lawyer-dashboard-wrapper .ld-availability-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.lawyer-dashboard-wrapper .ld-availability-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.lawyer-dashboard-wrapper .ld-availability-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.lawyer-dashboard-wrapper .ld-availability-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.lawyer-dashboard-wrapper .ld-selected-date {
+  background: #f0fdfa;
+  border: 1px solid #99f6e4;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: #065f46;
+}
+
+.lawyer-dashboard-wrapper .ld-selected-date strong {
+  color: #047857;
+  font-weight: 600;
+}
+
+.lawyer-dashboard-wrapper .ld-availability-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lawyer-dashboard-wrapper .ld-time-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.lawyer-dashboard-wrapper .ld-availability-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.lawyer-dashboard-wrapper .ld-label-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.lawyer-dashboard-wrapper .ld-availability-input {
+  padding: 3px 10px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #111827;
+  background: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.lawyer-dashboard-wrapper .ld-availability-input:focus {
+  outline: none;
+  border-color: #14a58a;
+  box-shadow: 0 0 0 3px rgba(20, 165, 138, 0.1);
+}
+
+.lawyer-dashboard-wrapper .ld-availability-input:hover {
+  border-color: #9ca3af;
+}
+
+.lawyer-dashboard-wrapper .ld-duration-display {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: #1e40af;
+  text-align: center;
+}
+
+.lawyer-dashboard-wrapper .ld-duration-display strong {
+  font-weight: 600;
+  color: #1e3a8a;
+}
+
+.lawyer-dashboard-wrapper .ld-form-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.lawyer-dashboard-wrapper .ld-btn-cancel {
+  flex: 1;
+  background: #ffffff;
+  color: #6b7280;
+  border: 1.5px solid #d1d5db;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.lawyer-dashboard-wrapper .ld-btn-cancel:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+  color: #374151;
+}
+
+.lawyer-dashboard-wrapper .ld-btn-primary {
+  flex: 2;
+  background: #14a58a;
+  color: #ffffff;
+  border: none;
+  padding: 3px 3px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.lawyer-dashboard-wrapper .ld-btn-primary:hover {
+  background: #0f9d8a;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(20, 165, 138, 0.3);
+}
+
+.lawyer-dashboard-wrapper .ld-btn-primary:active {
+  transform: translateY(0);
+}
+
+.lawyer-dashboard-wrapper .ld-btn-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.lawyer-dashboard-wrapper .ld-no-date-selected {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 20px 12px;
+  text-align: center;
+}
+
+.lawyer-dashboard-wrapper .ld-info-icon {
+  font-size: 28px;
+  line-height: 1;
+  opacity: 0.6;
+}
+
+.lawyer-dashboard-wrapper .ld-no-date-selected p {
+  margin: 0;
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.5;
 }
 
 /* Toast styles (reuse pattern from TalkToLawyer) */

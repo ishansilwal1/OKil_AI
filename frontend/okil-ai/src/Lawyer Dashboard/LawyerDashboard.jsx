@@ -186,7 +186,7 @@ const LawyerDashboard = () => {
           throw new Error(err.detail || "Failed to add availability");
         }
         await res.json();
-        alert("Availability added");
+        addToast("Availability added successfully", "success");
         setAvailabilityForm({ start_at: "", end_at: "" });
         // refresh my slots list
         try {
@@ -197,7 +197,7 @@ const LawyerDashboard = () => {
           setMySlots(Array.isArray(slots) ? slots : []);
         } catch (_) {}
       } catch (err) {
-        alert(err.message || "Failed to add availability");
+        addToast(err.message || "Failed to add availability", "error");
       }
     })();
   };
@@ -206,16 +206,39 @@ const LawyerDashboard = () => {
     e.preventDefault();
     const token = localStorage.getItem("okil_token");
     if (!token || selectedDay == null) return;
+    
+    // Check if selected date is in the past
+    const selectedDate = new Date(viewYear, viewMonth, selectedDay);
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    if (selectedDate < todayStart) {
+      addToast("Cannot create availability for a past date", "error");
+      return;
+    }
+    
     const [sh, sm] = (slotForm.startTime || "")
       .split(":")
       .map((n) => parseInt(n || "0", 10));
     const [eh, em] = (slotForm.endTime || "")
       .split(":")
       .map((n) => parseInt(n || "0", 10));
-    if (isNaN(sh) || isNaN(eh)) return alert("Please set start and end time");
+    if (isNaN(sh) || isNaN(eh)) {
+      addToast("Please set start and end time", "error");
+      return;
+    }
     const start = new Date(viewYear, viewMonth, selectedDay, sh, sm || 0, 0);
     const end = new Date(viewYear, viewMonth, selectedDay, eh, em || 0, 0);
-    if (end <= start) return alert("End time must be after start time");
+    
+    // Check if the time slot is in the past (for today's date)
+    const now = new Date();
+    if (start < now) {
+      addToast("Cannot create availability for a past time", "error");
+      return;
+    }
+    
+    if (end <= start) {
+      addToast("End time must be after start time", "error");
+      return;
+    }
     (async () => {
       try {
         const res = await fetch(`${API_BASE}/lawyers/availability`, {
@@ -242,9 +265,9 @@ const LawyerDashboard = () => {
           setMySlots(Array.isArray(slots) ? slots : []);
         } catch (_) {}
         setSlotForm({ startTime: "", endTime: "" });
-        alert("Availability added");
+        addToast("Availability added successfully", "success");
       } catch (err) {
-        alert(err.message || "Failed to add availability");
+        addToast(err.message || "Failed to add availability", "error");
       }
     })();
   };
@@ -394,143 +417,137 @@ const LawyerDashboard = () => {
                         viewMonth === today.getMonth() &&
                         d === today.getDate();
                       const isSelected = d && d === selectedDay;
+                      
+                      // Check if date is in the past
+                      const isPast = d && (
+                        viewYear < today.getFullYear() ||
+                        (viewYear === today.getFullYear() && viewMonth < today.getMonth()) ||
+                        (viewYear === today.getFullYear() && viewMonth === today.getMonth() && d < today.getDate())
+                      );
+                      
                       const dayStr = d
                         ? `${viewYear}-${String(viewMonth + 1).padStart(
                             2,
                             "0"
                           )}-${String(d).padStart(2, "0")}`
                         : "";
-                      const slotsForDay = d
-                        ? mySlots.filter((s) => {
-                            const dt = new Date(s.start_at);
-                            const ds = `${dt.getFullYear()}-${String(
-                              dt.getMonth() + 1
-                            ).padStart(2, "0")}-${String(dt.getDate()).padStart(
-                              2,
-                              "0"
-                            )}`;
-                            return ds === dayStr;
-                          })
-                        : [];
                       return (
                         <div
                           key={idx}
                           className={`ld-cal-cell ${isToday ? "today" : ""} ${
                             isSelected ? "selected" : ""
-                          }`}
-                          onClick={() => d && setSelectedDay(d)}
+                          } ${isPast ? "past" : ""}`}
+                          onClick={() => {
+                            if (d && !isPast) {
+                              setSelectedDay(d);
+                            } else if (isPast) {
+                              addToast("Cannot select a past date", "warning");
+                            }
+                          }}
                         >
                           {d || ""}
-                          {slotsForDay.length > 0 && (
-                            <div
-                              style={{
-                                marginTop: 4,
-                                display: "flex",
-                                flexWrap: "wrap",
-                                gap: 2,
-                              }}
-                            >
-                              {slotsForDay.slice(0, 3).map((s) => {
-                                const t = new Date(s.start_at);
-                                const label = t.toLocaleTimeString([], {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                });
-                                return (
-                                  <span
-                                    key={s.id}
-                                    style={{
-                                      fontSize: 10,
-                                      background: "#e6f7f1",
-                                      color: "#0aa36c",
-                                      padding: "1px 4px",
-                                      borderRadius: 4,
-                                    }}
-                                  >
-                                    {label}
-                                  </span>
-                                );
-                              })}
-                              {slotsForDay.length > 3 && (
-                                <span style={{ fontSize: 10, color: "#666" }}>
-                                  +{slotsForDay.length - 3}
-                                </span>
-                              )}
-                            </div>
-                          )}
                         </div>
                       );
                     })}
                   </div>
 
                   <div className="ld-upcoming">
-                    <div className="ld-upcoming-title">Add Availability</div>
-                    <div className="ld-availability-form">
-                      <div
-                        style={{ fontSize: 12, color: "#555", marginBottom: 6 }}
-                      >
-                        {selectedDay
-                          ? `Selected: ${new Date(
-                              viewYear,
-                              viewMonth,
-                              selectedDay
-                            ).toLocaleDateString()}`
-                          : "Select a day in the calendar"}
+                    <div className="ld-availability-card">
+                      <div className="ld-availability-header">
+                        <span className="ld-availability-icon">📅</span>
+                        <span className="ld-availability-title">Add Availability Slot</span>
                       </div>
-                      <form
-                        onSubmit={handleCreateDaySlot}
-                        style={{
-                          display: "grid",
-                          gridTemplateColumns: "1fr 1fr auto",
-                          gap: 8,
-                        }}
-                      >
-                        <div>
-                          <label className="ld-availability-label">
-                            Start Time
-                          </label>
-                          <input
-                            type="time"
-                            className="ld-availability-input"
-                            value={slotForm.startTime}
-                            onChange={(e) =>
-                              setSlotForm((prev) => ({
-                                ...prev,
-                                startTime: e.target.value,
-                              }))
-                            }
-                            required
-                          />
+                      
+                      {selectedDay ? (
+                        <>
+                          <form onSubmit={handleCreateDaySlot} className="ld-availability-form">
+                            <div className="ld-time-input-group">
+                              <label className="ld-availability-label">
+                                <span className="ld-label-icon">🕐</span>
+                                Start Time
+                              </label>
+                              <input
+                                type="time"
+                                className="ld-availability-input"
+                                value={slotForm.startTime}
+                                onChange={(e) =>
+                                  setSlotForm((prev) => ({
+                                    ...prev,
+                                    startTime: e.target.value,
+                                  }))
+                                }
+                                required
+                              />
+                            </div>
+                            
+                            <div className="ld-time-input-group">
+                              <label className="ld-availability-label">
+                                <span className="ld-label-icon">🕐</span>
+                                End Time
+                              </label>
+                              <input
+                                type="time"
+                                className="ld-availability-input"
+                                value={slotForm.endTime}
+                                onChange={(e) =>
+                                  setSlotForm((prev) => ({
+                                    ...prev,
+                                    endTime: e.target.value,
+                                  }))
+                                }
+                                required
+                              />
+                            </div>
+                            
+                            {slotForm.startTime && slotForm.endTime && (() => {
+                              const [sh, sm] = slotForm.startTime.split(':').map(Number);
+                              const [eh, em] = slotForm.endTime.split(':').map(Number);
+                              const startMin = sh * 60 + sm;
+                              const endMin = eh * 60 + em;
+                              const durationMin = endMin - startMin;
+                              if (durationMin > 0) {
+                                const hours = Math.floor(durationMin / 60);
+                                const mins = durationMin % 60;
+                                let durationText = '';
+                                if (hours > 0) durationText += `${hours} hour${hours > 1 ? 's' : ''}`;
+                                if (mins > 0) durationText += `${hours > 0 ? ' ' : ''}${mins} min${mins > 1 ? 's' : ''}`;
+                                return (
+                                  <div className="ld-duration-display">
+                                    Duration: <strong>{durationText}</strong>
+                                  </div>
+                                );
+                              }
+                              return null;
+                            })()}
+                            
+                            <div className="ld-form-actions">
+                              <button
+                                type="button"
+                                className="ld-btn-cancel"
+                                onClick={() => {
+                                  setSelectedDay(null);
+                                  setSlotForm({ startTime: '', endTime: '' });
+                                }}
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                type="submit"
+                                className="ld-btn-primary"
+                              >
+                                <span>Add Slot</span>
+                                <span className="ld-btn-icon">✓</span>
+                              </button>
+                            </div>
+                          </form>
+                        </>
+                      ) : (
+                        <div className="ld-no-date-selected">
+                          <span className="ld-info-icon">ℹ️</span>
+                          <p>Please select a date from the calendar above to add availability slots</p>
                         </div>
-                        <div>
-                          <label className="ld-availability-label">
-                            End Time
-                          </label>
-                          <input
-                            type="time"
-                            className="ld-availability-input"
-                            value={slotForm.endTime}
-                            onChange={(e) =>
-                              setSlotForm((prev) => ({
-                                ...prev,
-                                endTime: e.target.value,
-                              }))
-                            }
-                            required
-                          />
-                        </div>
-                        <div style={{ alignSelf: "end" }}>
-                          <button
-                            className="ld-btn"
-                            type="submit"
-                            disabled={!selectedDay}
-                          >
-                            Save
-                          </button>
-                        </div>
-                      </form>
+                      )}
                     </div>
-
                   </div>
                 </div>
               </section>
