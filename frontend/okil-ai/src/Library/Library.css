@@ -5,6 +5,8 @@
   background-color: #f5f5f5;
   font-family: 'Inter', sans-serif;
   overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* ====== Sidebar ====== */
@@ -151,6 +153,8 @@
   padding: 40px 60px;
   margin-left: 240px; /* fixed sidebar width */
   height: 100vh;
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
 .library-wrapper .library-header {
@@ -176,10 +180,13 @@
   border: 2px solid #0d9488;
   border-radius: 12px;
   padding: 0;
+  width: 100%;
   max-width: 100%;
   min-height: 500px;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 /* ====== Tab Navigation ====== */
@@ -219,6 +226,8 @@
 .library-wrapper .library-documents {
   padding: 24px 32px;
   flex: 1;
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
 .library-wrapper .library-no-documents {
@@ -246,10 +255,56 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
+.library-wrapper .library-document-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .library-wrapper .library-document-title {
   font-size: 16px;
   color: #111827;
   font-weight: 500;
+}
+
+.library-wrapper .library-document-size {
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 400;
+}
+
+/* ====== Error Message ====== */
+.library-wrapper .library-error {
+  background-color: #fee2e2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.library-wrapper .library-error p {
+  margin: 0;
+  color: #991b1b;
+  font-size: 14px;
+}
+
+.library-wrapper .library-retry-btn {
+  padding: 8px 16px;
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.library-wrapper .library-retry-btn:hover {
+  background-color: #b91c1c;
 }
 
 /* ====== Document Actions ====== */

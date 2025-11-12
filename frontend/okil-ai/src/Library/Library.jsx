@@ -5,23 +5,17 @@ import './Library.css';
 
 const Library = () => {
   const navigate = useNavigate();
+  const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
   const [loading, setLoading] = useState(true);
   const [role, setRole] = useState('user');
   const [activeTab, setActiveTab] = useState('acts'); // 'acts', 'ordinances', 'formats'
   const [recentChats, setRecentChats] = useState([]);
   const [documents, setDocuments] = useState({
-    acts: [
-      { id: 1, title: 'Nepal Vehicle Act', file: '/documents/nepal-vehicle-act.pdf' },
-      { id: 2, title: 'Nepal Labout Act', file: '/documents/nepal-labour-act.pdf' },
-      { id: 3, title: 'Nepal Human Right Act', file: '/documents/nepal-human-right-act.pdf' }
-    ],
-    ordinances: [
-      // Add ordinances here
-    ],
-    formats: [
-      // Add formats here
-    ]
+    acts: [],
+    ordinances: [],
+    formats: []
   });
+  const [fetchError, setFetchError] = useState(null);
 
   useEffect(() => {
     // Check if user is logged in
@@ -44,22 +38,75 @@ const Library = () => {
       setRecentChats([]);
     }
 
-    setLoading(false);
-    
-    // TODO: Fetch documents from backend
-    // fetchDocuments();
+    // Fetch documents from backend
+    fetchDocuments();
   }, [navigate]);
 
-  const handleView = (document) => {
-    // TODO: Open document viewer modal or new tab
-    console.log('View document:', document);
-    alert(`Viewing: ${document.title}`);
+  const fetchDocuments = async () => {
+    try {
+      setLoading(true);
+      setFetchError(null);
+
+      // Fetch documents for each category
+      const [actsRes, ordinancesRes, formatsRes] = await Promise.all([
+        fetch(`${API_BASE}/documents?category=Acts`),
+        fetch(`${API_BASE}/documents?category=ordinance`),
+        fetch(`${API_BASE}/documents?category=formats`)
+      ]);
+
+      const actsData = await actsRes.json();
+      const ordinancesData = await ordinancesRes.json();
+      const formatsData = await formatsRes.json();
+
+      setDocuments({
+        acts: Array.isArray(actsData) ? actsData : [],
+        ordinances: Array.isArray(ordinancesData) ? ordinancesData : [],
+        formats: Array.isArray(formatsData) ? formatsData : []
+      });
+    } catch (error) {
+      console.error('Error fetching documents:', error);
+      setFetchError('Failed to load documents. Please try again later.');
+      setDocuments({ acts: [], ordinances: [], formats: [] });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDownload = (document) => {
-    // TODO: Download document
-    console.log('Download document:', document);
-    alert(`Downloading: ${document.title}`);
+  const handleView = (doc) => {
+    // Open PDF in new tab
+    const pdfUrl = `${API_BASE}/documents/${doc.id}`;
+    window.open(pdfUrl, '_blank');
+  };
+
+  const handleDownload = async (doc) => {
+    try {
+      // Fetch the PDF
+      const response = await fetch(`${API_BASE}/documents/${doc.id}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to download document');
+      }
+      
+      const blob = await response.blob();
+      
+      // Create a download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = doc.filename || 'document.pdf';
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      
+      // Cleanup
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(link);
+      }, 100);
+    } catch (error) {
+      console.error('Error downloading document:', error);
+      alert('Failed to download document. Please try again.');
+    }
   };
 
   const handleNewChat = () => {
@@ -105,21 +152,31 @@ const Library = () => {
               className={`library-tab ${activeTab === 'acts' ? 'active' : ''}`}
               onClick={() => setActiveTab('acts')}
             >
-              ACTS
+              ACTS ({documents.acts.length})
             </button>
             <button
               className={`library-tab ${activeTab === 'ordinances' ? 'active' : ''}`}
               onClick={() => setActiveTab('ordinances')}
             >
-              Ordinances
+              Ordinances ({documents.ordinances.length})
             </button>
             <button
               className={`library-tab ${activeTab === 'formats' ? 'active' : ''}`}
               onClick={() => setActiveTab('formats')}
             >
-              Formats
+              Formats ({documents.formats.length})
             </button>
           </div>
+
+          {/* Error Message */}
+          {fetchError && (
+            <div className="library-error">
+              <p>{fetchError}</p>
+              <button onClick={fetchDocuments} className="library-retry-btn">
+                Retry
+              </button>
+            </div>
+          )}
 
           {/* Documents List */}
           <div className="library-documents">
@@ -130,7 +187,7 @@ const Library = () => {
             ) : (
               getActiveDocuments().map((doc) => (
                 <div key={doc.id} className="library-document-item">
-                  <span className="library-document-title">{doc.title}</span>
+                  <span className="library-document-title">{doc.filename}</span>
                   <div className="library-document-actions">
                     <button
                       className="library-view-btn"
