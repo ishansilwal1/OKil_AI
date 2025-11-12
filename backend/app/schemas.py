@@ -134,3 +134,31 @@ class AvailabilitySlotOut(BaseModel):
 
 	class Config:
 		from_attributes = True
+
+
+class DocumentListOut(BaseModel):
+	"""Document metadata without binary content"""
+	id: int
+	filename: str
+	category: str
+	file_size: int
+	mime_type: str
+	created_at: datetime
+	updated_at: datetime
+
+	class Config:
+		from_attributes = True
+
+
+class DocumentOut(BaseModel):
+	"""Document with full content (for download)"""
+	id: int
+	filename: str
+	category: str
+	file_data: bytes
+	file_size: int
+	mime_type: str
+	created_at: datetime
+
+	class Config:
+		from_attributes = True

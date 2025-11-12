@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .auth import router as auth_router
 from .interactions import router as interactions_router
+from .documents import router as documents_router
 from . import models
 from .db import init_db
 
@@ -35,6 +36,7 @@ def read_item(item_id: int, q: Union[str, None] = None):
 
 app.include_router(auth_router, prefix="/auth")
 app.include_router(interactions_router)
+app.include_router(documents_router)
 
 
 @app.on_event("startup")

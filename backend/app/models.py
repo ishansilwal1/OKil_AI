@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, Text, Date, Time
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, Text, Date, Time, LargeBinary
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from .db import Base
@@ -88,3 +88,18 @@ class AvailabilitySlot(Base):
     end_at = Column(DateTime(timezone=True), nullable=False)
     is_booked = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class Document(Base):
+    __tablename__ = 'documents'
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=False)  # Changed from filename to match existing DB
+    category = Column(String, nullable=False)  # 'Acts', 'ordinance', 'formats'
+    file_url = Column(String, nullable=True)  # Keep for backward compatibility
+    file_data = Column(LargeBinary, nullable=True)  # New: PDF binary data
+    file_size = Column(Integer, nullable=True)  # Size in bytes
+    description = Column(Text, nullable=True)  # Existing field
+    mime_type = Column(String, default='application/pdf')
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
