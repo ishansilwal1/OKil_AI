@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../Sidebar/Sidebar';
+import ConfirmationModal from '../components/ConfirmationModal';
 import './TalkToLawyer.css';
 
 const TalkToLawyer = () => {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [recentChats, setRecentChats] = useState([]);
   const [currentView, setCurrentView] = useState('list'); // 'list', 'appointment', 'query'
   const [recordsView, setRecordsView] = useState(null); // null | 'appointments' | 'queries'
@@ -37,51 +38,77 @@ const TalkToLawyer = () => {
   });
   const [lawyers, setLawyers] = useState([]);
   const [myQueries, setMyQueries] = useState([]);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [chatToDelete, setChatToDelete] = useState(null);
   const [qLoading, setQLoading] = useState(false);
 
   useEffect(() => {
-    // Check if user is logged in
-    const token = localStorage.getItem('okil_token');
-    const user = JSON.parse(localStorage.getItem('okil_user') || '{}');
+    const initializePage = async () => {
+      // Check if user is logged in
+      const token = localStorage.getItem('okil_token');
+      const user = JSON.parse(localStorage.getItem('okil_user') || '{}');
 
-    if (!token) {
-      // App uses Auth at '/'; keep it consistent
-      navigate('/');
-      return;
-    }
+      if (!token) {
+        navigate('/login');
+        return;
+      }
 
-    // Redirect lawyers to their dashboard
-    if (user.role === 'lawyer') {
-      navigate('/lawyer-dashboard');
-      return;
-    }
-
-    // Load recent chats from localStorage
-    const savedChats = localStorage.getItem('okil_recent_chats');
-    if (savedChats) {
-      setRecentChats(JSON.parse(savedChats));
-    }
-
-    // Fetch lawyers list from backend
-    (async function fetchLawyers() {
+      // Load recent chats and lawyers in parallel
       try {
-        const res = await fetch(`${API_BASE}/lawyers`);
-        if (!res.ok) throw new Error('Failed to load lawyers');
-        const data = await res.json();
-        setLawyers(Array.isArray(data) ? data : []);
-      } catch (e) {
-        console.error(e);
-        setLawyers([]);
+        await Promise.all([
+          loadRecentChats(),
+          fetchLawyers(),
+          fetchMyAppointments(),
+          fetchMyQueries()
+        ]);
+      } catch (error) {
+        console.error('Error initializing page:', error);
       } finally {
         setLoading(false);
       }
-    })();
+    };
 
-    // Fetch my appointments
-    fetchMyAppointments();
-    // Fetch my queries
-    fetchMyQueries();
+    initializePage();
   }, [navigate]);
+
+  const fetchLawyers = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/lawyers`);
+      if (!res.ok) throw new Error('Failed to load lawyers');
+      const data = await res.json();
+      setLawyers(Array.isArray(data) ? data : []);
+    } catch (e) {
+      console.error(e);
+      setLawyers([]);
+    }
+  };
+
+  const loadRecentChats = async () => {
+    const token = localStorage.getItem('okil_token');
+    if (!token) return;
+
+    try {
+      const response = await fetch(`${API_BASE}/api/v1/chat/sessions`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const sessions = await response.json();
+        const formattedChats = sessions.map(session => ({
+          id: `db-${session.id}`,
+          title: session.title,
+          date: new Date(session.updated_at).toLocaleDateString(),
+          messageCount: session.message_count,
+          timestamp: new Date(session.updated_at).getTime()
+        }));
+        setRecentChats(formattedChats);
+      }
+    } catch (error) {
+      console.error('Failed to load chats:', error);
+    }
+  };
 
   const handleTalkToLawyerClick = (lawyer) => {
     setSelectedLawyer(lawyer);
@@ -158,7 +185,7 @@ const TalkToLawyer = () => {
   };
 
   const handleLoadChat = (chatId) => {
-    navigate('/user-dashboard', { state: { loadChatId: chatId } });
+    navigate(`/user-dashboard?chatId=${chatId}`);
   };
 
   const handleInputChange = (e) => {
@@ -266,11 +293,45 @@ const TalkToLawyer = () => {
     setSelectedLawyer(null);
   };
 
-  if (loading) {
-    return <div className="lawyer-loading">Loading...</div>;
-  }
+  const handleDeleteChat = async (chatId) => {
+    // Show confirmation modal
+    setChatToDelete(chatId);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!chatToDelete) return;
+
+    const token = localStorage.getItem('okil_token');
+    if (!token) return;
+
+    const sessionId = chatToDelete.replace('db-', '');
+    
+    try {
+      await fetch(`${API_BASE}/api/v1/chat/sessions/${sessionId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      setRecentChats(prev => prev.filter(chat => chat.id !== chatToDelete));
+    } catch (error) {
+      console.error('Failed to delete chat:', error);
+    }
+
+    // Close modal
+    setShowDeleteModal(false);
+    setChatToDelete(null);
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setChatToDelete(null);
+  };
 
   return (
+    <>
     <div className="talk-to-lawyer-wrapper">
       <div className="talk-to-lawyer-page">
         {/* Sidebar */}
@@ -279,6 +340,7 @@ const TalkToLawyer = () => {
           recentChats={recentChats}
           onNewChat={handleNewChat}
           onLoadChat={handleLoadChat}
+          onDeleteChat={handleDeleteChat}
         />
 
       {/* Main Content */}
@@ -648,6 +710,15 @@ const TalkToLawyer = () => {
       </div>
     </div>
     </div>
+
+    <ConfirmationModal
+      isOpen={showDeleteModal}
+      onConfirm={confirmDelete}
+      onCancel={cancelDelete}
+      title="Delete Chat"
+      message="Are you sure you want to delete this chat? This action cannot be undone."
+    />
+    </>
   );
 };
 

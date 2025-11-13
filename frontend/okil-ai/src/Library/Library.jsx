@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../Sidebar/Sidebar';
+import ConfirmationModal from '../components/ConfirmationModal';
 import './Library.css';
 
 const Library = () => {
   const navigate = useNavigate();
   const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [role, setRole] = useState('user');
   const [activeTab, setActiveTab] = useState('acts'); // 'acts', 'ordinances', 'formats'
   const [recentChats, setRecentChats] = useState([]);
@@ -16,6 +17,8 @@ const Library = () => {
     formats: []
   });
   const [fetchError, setFetchError] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [chatToDelete, setChatToDelete] = useState(null);
 
   useEffect(() => {
     // Check if user is logged in
@@ -23,24 +26,46 @@ const Library = () => {
     const user = JSON.parse(localStorage.getItem('okil_user') || '{}');
 
     if (!token) {
-      navigate('/');
+      navigate('/login');
       return;
     }
     setRole(user.role || 'user');
 
-    // Load recent chats only for normal users; lawyers shouldn't see user chats here
-    if ((user.role || 'user') !== 'lawyer') {
-      const savedChats = localStorage.getItem('okil_recent_chats');
-      if (savedChats) {
-        setRecentChats(JSON.parse(savedChats));
-      }
-    } else {
-      setRecentChats([]);
-    }
+    // Load recent chats from backend
+    loadRecentChats();
 
     // Fetch documents from backend
     fetchDocuments();
   }, [navigate]);
+
+  const loadRecentChats = async () => {
+    const token = localStorage.getItem('okil_token');
+    if (!token) return;
+
+    const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+    
+    try {
+      const response = await fetch(`${API_BASE}/api/v1/chat/sessions`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const sessions = await response.json();
+        const formattedChats = sessions.map(session => ({
+          id: `db-${session.id}`,
+          title: session.title,
+          date: new Date(session.updated_at).toLocaleDateString(),
+          messageCount: session.message_count,
+          timestamp: new Date(session.updated_at).getTime()
+        }));
+        setRecentChats(formattedChats);
+      }
+    } catch (error) {
+      console.error('Failed to load chats:', error);
+    }
+  };
 
   const fetchDocuments = async () => {
     try {
@@ -110,23 +135,59 @@ const Library = () => {
   };
 
   const handleNewChat = () => {
-    navigate(role === 'lawyer' ? '/lawyer-dashboard' : '/user-dashboard');
+    // Both users and lawyers should go to user-dashboard (chat interface) for new chats
+    navigate('/user-dashboard');
   };
 
   const handleLoadChat = (chatId) => {
-    const target = role === 'lawyer' ? '/lawyer-dashboard' : '/user-dashboard';
-    navigate(target, { state: { loadChatId: chatId } });
+    // Both users and lawyers should go to user-dashboard (chat interface) to view chats
+    navigate(`/user-dashboard?chatId=${chatId}`);
+  };
+
+  const handleDeleteChat = async (chatId) => {
+    // Show confirmation modal
+    setChatToDelete(chatId);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!chatToDelete) return;
+
+    const token = localStorage.getItem('okil_token');
+    if (!token) return;
+
+    const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+    const sessionId = chatToDelete.replace('db-', '');
+    
+    try {
+      await fetch(`${API_BASE}/api/v1/chat/sessions/${sessionId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      setRecentChats(prev => prev.filter(chat => chat.id !== chatToDelete));
+    } catch (error) {
+      console.error('Failed to delete chat:', error);
+    }
+
+    // Close modal
+    setShowDeleteModal(false);
+    setChatToDelete(null);
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setChatToDelete(null);
   };
 
   const getActiveDocuments = () => {
     return documents[activeTab] || [];
   };
 
-  if (loading) {
-    return <div className="library-loading">Loading...</div>;
-  }
-
   return (
+    <>
     <div className="library-wrapper">
       <div className="library-page">
         {/* Sidebar */}
@@ -136,6 +197,7 @@ const Library = () => {
           recentChats={recentChats}
           onNewChat={handleNewChat}
           onLoadChat={handleLoadChat}
+          onDeleteChat={handleDeleteChat}
         />
 
       {/* Main Content */}
@@ -180,7 +242,9 @@ const Library = () => {
 
           {/* Documents List */}
           <div className="library-documents">
-            {getActiveDocuments().length === 0 ? (
+            {loading ? (
+              <div className="library-loading">Loading documents...</div>
+            ) : getActiveDocuments().length === 0 ? (
               <div className="library-no-documents">
                 <p>No documents available in this category.</p>
               </div>
@@ -210,6 +274,15 @@ const Library = () => {
       </div>
     </div>
     </div>
+
+    <ConfirmationModal
+      isOpen={showDeleteModal}
+      onConfirm={confirmDelete}
+      onCancel={cancelDelete}
+      title="Delete Chat"
+      message="Are you sure you want to delete this chat? This action cannot be undone."
+    />
+    </>
   );
 };
 

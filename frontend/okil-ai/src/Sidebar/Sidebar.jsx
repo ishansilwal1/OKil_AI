@@ -30,8 +30,8 @@ const Sidebar = ({
     if (onNewChat) {
       onNewChat(); // Call parent's new chat handler
     } else {
-      // Navigate to role-appropriate dashboard
-      navigate(role === 'lawyer' ? '/lawyer-dashboard' : '/user-dashboard');
+      // Navigate to chat interface (UserDashboard) for both users and lawyers
+      navigate('/user-dashboard');
     }
   };
 
@@ -54,7 +54,7 @@ const Sidebar = ({
   const handleSignOut = () => {
     localStorage.removeItem('okil_token');
     localStorage.removeItem('okil_user');
-    navigate('/');
+    navigate('/login');
   };
 
   // Build menu based on role

@@ -1,8 +1,10 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from '../Sidebar/Sidebar';
 import './Settings.css';
 
 export default function Settings() {
+	const navigate = useNavigate();
 	const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
 	const storedUser = useMemo(() => {
@@ -20,13 +22,94 @@ export default function Settings() {
 		contact: '', // not persisted on backend yet
 		email: storedUser.email || '',
 		expertise: storedUser.expertise || '',
+		currentPassword: '',
+		newPassword: '',
+		confirmPassword: '',
 	});
+
+	const [recentChats, setRecentChats] = useState([]);
+
+	// Password visibility state
+	const [showPasswords, setShowPasswords] = useState({
+		current: false,
+		new: false,
+		confirm: false
+	});
+
+	const togglePasswordVisibility = (field) => {
+		setShowPasswords(prev => ({
+			...prev,
+			[field]: !prev[field]
+		}));
+	};
 
 	// simple toast
 	const [toast, setToast] = useState(null);
 	const showToast = (msg, type = 'success') => {
 		setToast({ msg, type });
 		setTimeout(() => setToast(null), 3000);
+	};
+
+	const loadRecentChats = useCallback(async () => {
+		const token = localStorage.getItem('okil_token');
+		if (!token) return;
+
+		try {
+			const response = await fetch(`${API_BASE}/api/v1/chat/sessions`, {
+				headers: {
+					'Authorization': `Bearer ${token}`
+				}
+			});
+
+			if (!response.ok) {
+				console.error('Failed to load recent chats');
+				return;
+			}
+
+			const data = await response.json();
+			setRecentChats(Array.isArray(data) ? data : []);
+		} catch (error) {
+			console.error('Error loading recent chats:', error);
+		}
+	}, [API_BASE]);
+
+	// Load recent chats on mount
+	useEffect(() => {
+		loadRecentChats();
+	}, [loadRecentChats]);
+
+	const handleNewChat = () => {
+		navigate('/user-dashboard');
+	};
+
+	const handleLoadChat = (chatId) => {
+		navigate(`/user-dashboard?chatId=${chatId}`);
+	};
+
+	const handleDeleteChat = async (chatId) => {
+		const token = localStorage.getItem('okil_token');
+		if (!token) return;
+
+		try {
+			const response = await fetch(`${API_BASE}/api/v1/chat/sessions/${chatId}`, {
+				method: 'DELETE',
+				headers: {
+					'Authorization': `Bearer ${token}`
+				}
+			});
+
+			if (!response.ok) {
+				showToast('Failed to delete chat', 'error');
+				return;
+			}
+
+			// Remove from local state
+			setRecentChats(prev => prev.filter(chat => chat.id !== chatId));
+			showToast('Chat deleted successfully');
+		} catch (error) {
+			console.error('Error deleting chat:', error);
+			showToast('Network error. Please try again.', 'error');
+		}
 	};
 
 	const handleChange = (e) => {
@@ -36,11 +119,83 @@ export default function Settings() {
 
 	const handleSave = async (e) => {
 		e.preventDefault();
-		// Persist locally for now; backend update endpoint not implemented
-		const merged = { ...storedUser, name: profile.name, email: profile.email };
-		if (role === 'lawyer') merged.expertise = profile.expertise || null;
-		localStorage.setItem('okil_user', JSON.stringify(merged));
-		showToast('Changes saved');
+		
+		const token = localStorage.getItem('okil_token');
+		if (!token) {
+			showToast('Not authenticated', 'error');
+			return;
+		}
+
+		// Validate password fields if any are filled
+		if (profile.currentPassword || profile.newPassword || profile.confirmPassword) {
+			if (!profile.currentPassword || !profile.newPassword || !profile.confirmPassword) {
+				showToast('Please fill all password fields to change password', 'error');
+				return;
+			}
+			
+			if (profile.newPassword !== profile.confirmPassword) {
+				showToast('New passwords do not match', 'error');
+				return;
+			}
+			
+			if (profile.newPassword.length < 6) {
+				showToast('New password must be at least 6 characters long', 'error');
+				return;
+			}
+		}
+
+		try {
+			// Prepare update payload
+			const updateData = {
+				name: profile.name,
+			};
+			
+			// Only include expertise for lawyers
+			if (role === 'lawyer') {
+				updateData.expertise = profile.expertise || null;
+			}
+
+			// Add password fields if changing password
+			if (profile.currentPassword && profile.newPassword) {
+				updateData.current_password = profile.currentPassword;
+				updateData.new_password = profile.newPassword;
+			}
+
+			// Call backend API to update profile
+			const res = await fetch(`${API_BASE}/auth/me`, {
+				method: 'PUT',
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${token}`
+				},
+				body: JSON.stringify(updateData)
+			});
+
+			if (!res.ok) {
+				const errorData = await res.json();
+				showToast(errorData.detail || 'Failed to save changes', 'error');
+				return;
+			}
+
+			const updatedUser = await res.json();
+			
+			// Update localStorage with the response from backend
+			const merged = { ...storedUser, ...updatedUser };
+			localStorage.setItem('okil_user', JSON.stringify(merged));
+			
+			// Clear password fields after successful update
+			setProfile(prev => ({
+				...prev,
+				currentPassword: '',
+				newPassword: '',
+				confirmPassword: ''
+			}));
+			
+			showToast('Changes saved successfully');
+		} catch (e) {
+			console.error('Error saving profile:', e);
+			showToast('Network error. Please try again.', 'error');
+		}
 	};
 
 	// Delete account modal state
@@ -74,7 +229,13 @@ export default function Settings() {
 
 	return (
 		<div className="settings-wrapper">
-			<Sidebar activeMenu="settings" />
+			<Sidebar 
+				activeMenu="settings" 
+				recentChats={recentChats}
+				onNewChat={handleNewChat}
+				onLoadChat={handleLoadChat}
+				onDeleteChat={handleDeleteChat}
+			/>
 			<main className="settings-main">
 				<div className="settings-container">
 					<h1 className="settings-title">Settings</h1>
@@ -110,16 +271,76 @@ export default function Settings() {
 							<div className="form-grid">
 								<div className="form-group">
 									<label className="form-label">Current Password</label>
-									<input className="form-input" type="password" placeholder="Enter your password" />
+									<div className="input-container">
+										<input 
+											className="form-input" 
+											type={showPasswords.current ? "text" : "password"}
+											name="currentPassword"
+											value={profile.currentPassword}
+											onChange={handleChange}
+											placeholder="Enter your current password" 
+											style={{ paddingRight: '40px' }}
+										/>
+										<button
+											type="button"
+											className="password-toggle"
+											onClick={() => togglePasswordVisibility('current')}
+										>
+											<svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+												<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="#9CA3AF" strokeWidth="2"/>
+												<circle cx="12" cy="12" r="3" stroke="#9CA3AF" strokeWidth="2"/>
+											</svg>
+										</button>
+									</div>
 								</div>
 								<div />
 								<div className="form-group">
 									<label className="form-label">New Password</label>
-									<input className="form-input" type="password" placeholder="enter your new password" />
+									<div className="input-container">
+										<input 
+											className="form-input" 
+											type={showPasswords.new ? "text" : "password"}
+											name="newPassword"
+											value={profile.newPassword}
+											onChange={handleChange}
+											placeholder="Enter your new password" 
+											style={{ paddingRight: '40px' }}
+										/>
+										<button
+											type="button"
+											className="password-toggle"
+											onClick={() => togglePasswordVisibility('new')}
+										>
+											<svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+												<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="#9CA3AF" strokeWidth="2"/>
+												<circle cx="12" cy="12" r="3" stroke="#9CA3AF" strokeWidth="2"/>
+											</svg>
+										</button>
+									</div>
 								</div>
 								<div className="form-group">
 									<label className="form-label">Confirm New Password</label>
-									<input className="form-input" type="password" placeholder="confirm new password" />
+									<div className="input-container">
+										<input 
+											className="form-input" 
+											type={showPasswords.confirm ? "text" : "password"}
+											name="confirmPassword"
+											value={profile.confirmPassword}
+											onChange={handleChange}
+											placeholder="Confirm new password" 
+											style={{ paddingRight: '40px' }}
+										/>
+										<button
+											type="button"
+											className="password-toggle"
+											onClick={() => togglePasswordVisibility('confirm')}
+										>
+											<svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+												<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="#9CA3AF" strokeWidth="2"/>
+												<circle cx="12" cy="12" r="3" stroke="#9CA3AF" strokeWidth="2"/>
+											</svg>
+										</button>
+									</div>
 								</div>
 							</div>
 

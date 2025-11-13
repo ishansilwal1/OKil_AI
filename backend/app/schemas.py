@@ -28,6 +28,7 @@ class TokenResponse(BaseModel):
 	access_token: str
 	token_type: str = "bearer"
 	expires_in: int
+	user: 'UserOut'
 
 
 class ForgotRequest(BaseModel):
@@ -37,6 +38,13 @@ class ForgotRequest(BaseModel):
 class ResetRequest(BaseModel):
 	token: str
 	new_password: str
+
+
+class UserUpdateRequest(BaseModel):
+	name: Optional[str] = None
+	expertise: Optional[str] = None
+	current_password: Optional[str] = None
+	new_password: Optional[str] = None
 
 
 class UserOut(BaseModel):
@@ -162,3 +170,7 @@ class DocumentOut(BaseModel):
 
 	class Config:
 		from_attributes = True
+
+
+# Update forward references
+TokenResponse.model_rebuild()

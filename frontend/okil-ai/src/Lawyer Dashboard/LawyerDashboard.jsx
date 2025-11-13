@@ -8,7 +8,7 @@ const LawyerDashboard = () => {
   const location = useLocation();
   const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
-  const [recentChats] = useState([]);
+  const [recentChats, setRecentChats] = useState([]);
   const [appointments, setAppointments] = useState([]);
   const [queries, setQueries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,6 +32,59 @@ const LawyerDashboard = () => {
   };
   const removeToast = (id) => setToasts((prev) => prev.filter((t) => t.id !== id));
 
+  // Load recent chats from database
+  const loadRecentChats = async () => {
+    const token = localStorage.getItem('okil_token');
+    if (!token) {
+      console.log('❌ No token found, cannot load chats');
+      return;
+    }
+
+    console.log('🔄 Loading recent chats from database...');
+    try {
+      const response = await fetch(`${API_BASE}/api/v1/chat/sessions`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      console.log('📥 Response status:', response.status);
+      
+      if (response.ok) {
+        const sessions = await response.json();
+        console.log('✅ Loaded sessions:', sessions);
+        const formattedChats = sessions.map(session => ({
+          id: `db-${session.id}`,
+          title: session.title,
+          date: new Date(session.updated_at).toLocaleDateString(),
+          messageCount: session.message_count,
+          timestamp: new Date(session.updated_at).getTime()
+        }));
+        console.log('📝 Formatted chats:', formattedChats);
+        setRecentChats(formattedChats);
+      } else {
+        console.error('❌ Failed to load chats, status:', response.status);
+      }
+    } catch (error) {
+      console.error('❌ Failed to load chats:', error);
+      // Fallback to localStorage
+      const savedChats = localStorage.getItem('okil_recent_chats');
+      if (savedChats) {
+        console.log('📦 Using localStorage fallback');
+        setRecentChats(JSON.parse(savedChats));
+      }
+    }
+  };
+
+  // Navigate to chat interface
+  const handleNewChat = () => {
+    navigate('/user-dashboard');
+  };
+
+  const handleLoadChat = (chatId) => {
+    navigate(`/user-dashboard?chatId=${chatId}`);
+  };
+
   // Load initial data
   useEffect(() => {
     const token = localStorage.getItem("okil_token");
@@ -46,6 +99,9 @@ const LawyerDashboard = () => {
       return;
     }
     setMe({ id: user.id, role: user.role, name: user.name || "" });
+
+    // Load recent chats from database
+    loadRecentChats();
 
     (async () => {
       try {
@@ -280,6 +336,8 @@ const LawyerDashboard = () => {
           role="lawyer"
           activeMenu="dashboard"
           recentChats={recentChats}
+          onNewChat={handleNewChat}
+          onLoadChat={handleLoadChat}
         />
 
         {/* Main */}

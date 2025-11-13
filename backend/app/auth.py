@@ -9,6 +9,7 @@ from .schemas import (
 	ForgotRequest,
 	ResetRequest,
 	UserOut,
+	UserUpdateRequest,
 )
 from pathlib import Path
 from datetime import datetime, timezone
@@ -73,7 +74,7 @@ def register_lawyer(req: LawyerRegisterRequest, db: Session = Depends(get_db)):
 	return UserOut(name=user.name, username=user.username, email=user.email, role=user.role, barCouncilNumber=user.barCouncilNumber, expertise=user.expertise)
 
 
-@router.post('/login', response_model=TokenResponse)
+@router.post('/login')
 def login(req: LoginRequest, db: Session = Depends(get_db)):
 	# allow login by email OR username
 	user = db.query(models.User).filter((models.User.email == req.email) | (models.User.username == req.email)).first()
@@ -82,9 +83,11 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
 	if not utils.verify_password(user.password, req.password):
 		raise HTTPException(status_code=401, detail='Invalid credentials')
 
-	# Generate token
-	access = utils.generate_token()
-	token_hash = sha256(access.encode()).hexdigest()
+	# Generate JWT token
+	access_token = utils.create_jwt_token(
+		data={"sub": user.email, "user_id": user.id, "role": user.role}
+	)
+	token_hash = sha256(access_token.encode()).hexdigest()
 	
 	# Clean up expired tokens for this user
 	current_time = datetime.now(timezone.utc)
@@ -104,7 +107,21 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
 	db.add(login_token)
 	db.commit()
 	
-	return TokenResponse(access_token=access, expires_in=3600)
+	# Return response with user info
+	return {
+		"access_token": access_token,
+		"token_type": "bearer",
+		"expires_in": 3600,
+		"user": {
+			"id": user.id,
+			"name": user.name,
+			"username": user.username,
+			"email": user.email,
+			"role": user.role,
+			"expertise": user.expertise if user.role == 'lawyer' else None,
+			"barCouncilNumber": user.barCouncilNumber if user.role == 'lawyer' else None
+		}
+	}
 
 
 @router.post('/forgot')
@@ -234,6 +251,54 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
 @router.get('/me')
 def me(current=Depends(get_current_user)):
 	return current
+
+
+@router.put('/me')
+def update_me(
+	req: UserUpdateRequest,
+	current=Depends(get_current_user),
+	db: Session = Depends(get_db)
+):
+	"""Update the current user's profile information."""
+	uid = current['id']
+	user = db.query(models.User).filter(models.User.id == uid).first()
+	if not user:
+		raise HTTPException(status_code=404, detail='User not found')
+	
+	# Update fields if provided
+	if req.name is not None:
+		user.name = req.name
+	if req.expertise is not None:
+		user.expertise = req.expertise
+	
+	# Handle password change if both current and new password are provided
+	if req.current_password and req.new_password:
+		# Verify current password
+		if not utils.verify_password(user.password, req.current_password):
+			raise HTTPException(status_code=400, detail='Current password is incorrect')
+		
+		# Validate new password length
+		if len(req.new_password) < 6:
+			raise HTTPException(status_code=400, detail='New password must be at least 6 characters long')
+		
+		# Update password
+		user.password = utils.hash_password(req.new_password)
+	elif req.current_password or req.new_password:
+		# If only one password field is provided, return error
+		raise HTTPException(status_code=400, detail='Both current password and new password are required to change password')
+	
+	db.commit()
+	db.refresh(user)
+	
+	return {
+		'id': user.id,
+		'name': user.name,
+		'username': user.username,
+		'email': user.email,
+		'role': user.role,
+		'barCouncilNumber': user.barCouncilNumber,
+		'expertise': user.expertise
+	}
 
 
 @router.post('/logout')

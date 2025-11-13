@@ -1,0 +1,243 @@
+/* MyAppointments.css - Matching Lawyer Dashboard Design */
+
+.appointments-wrapper {
+  display: flex;
+  min-height: 100vh;
+}
+
+.appointments-main-content {
+  flex: 1;
+  margin-left: 0;
+  padding: 24px;
+  background: #f5f9fb;
+  overflow-y: auto;
+}
+
+.appointments-header {
+  margin-bottom: 20px;
+}
+
+.appointments-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0c7a5b;
+  margin: 0 0 6px 0;
+}
+
+.appointments-subtitle {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.appointments-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  font-size: 16px;
+  color: #6b7280;
+}
+
+.appointments-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 20px;
+}
+
+.appointment-card {
+  background: white;
+  border: 1px solid #e6e9ef;
+  border-radius: 10px;
+  padding: 18px 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.appointment-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.appointment-card.expired {
+  opacity: 0.7;
+  background: #f9fafb;
+}
+
+.appointment-card.expired .appointment-card-header h3 {
+  color: #9ca3af;
+}
+
+.appointment-card.expired .appointment-detail-item {
+  color: #9ca3af;
+}
+
+.appointment-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.appointment-card-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  flex: 1;
+}
+
+.appointment-status {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: white;
+  text-transform: capitalize;
+}
+
+.appointment-details {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.appointment-detail-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.appointment-detail-item svg {
+  stroke-width: 2;
+  flex-shrink: 0;
+}
+
+.appointment-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.action-btn {
+  flex: 1;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.action-btn.primary {
+  background: #0f9d8a;
+  color: white;
+}
+
+.action-btn.primary:hover:not(:disabled) {
+  background: #0a9e7a;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(15, 157, 138, 0.3);
+}
+
+.action-btn.secondary {
+  background: #f3f4f6;
+  color: #6b7280;
+  border: 1px solid #e5e7eb;
+}
+
+.action-btn.secondary:hover {
+  background: #e5e7eb;
+}
+
+.action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.no-appointments {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  background: white;
+  border: 1px solid #e6e9ef;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.no-appointments svg {
+  opacity: 0.4;
+  margin-bottom: 20px;
+  color: #0c7a5b;
+}
+
+.no-appointments h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: #1f2937;
+}
+
+.no-appointments p {
+  font-size: 14px;
+  margin: 0 0 20px 0;
+  color: #6b7280;
+}
+
+.book-appointment-btn {
+  background: #0f9d8a;
+  color: white;
+  padding: 10px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.book-appointment-btn:hover {
+  background: #0a9e7a;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(15, 157, 138, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .appointments-list {
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .appointments-main-content {
+    margin-left: 0;
+    padding: 20px;
+  }
+
+  .appointments-list {
+    grid-template-columns: 1fr;
+  }
+
+  .appointment-card {
+    padding: 20px;
+  }
+
+  .appointment-actions {
+    flex-direction: column;
+  }
+}

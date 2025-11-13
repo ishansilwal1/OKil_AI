@@ -59,12 +59,17 @@ export default function QueryDetails() {
     return res.json();
   };
 
+  const redirectWithToast = (message, type='success') => {
+    navigate('/lawyer-dashboard', { state: { toast: { message, type } } });
+  };
+
   const handleAccept = async () => {
     try {
       await patchQuery({ status: 'accepted' });
-      await loadQuery();
-      alert('Query accepted');
-    } catch (e) { alert(e.message); }
+      redirectWithToast('Query accepted', 'success');
+    } catch (e) {
+      redirectWithToast(e.message || 'Failed to accept query', 'error');
+    }
   };
 
   const handleRequestInfo = async (e) => {
@@ -72,19 +77,21 @@ export default function QueryDetails() {
     try {
       // Optionally could include description update: description: infoNote
       await patchQuery({ status: 'info_requested' });
-      await loadQuery();
       setRequestInfoOpen(false);
       setInfoNote('');
-      alert('Requested more info from user');
-    } catch (e) { alert(e.message); }
+      redirectWithToast('Requested more info from user', 'success');
+    } catch (e) {
+      redirectWithToast(e.message || 'Failed to request info', 'error');
+    }
   };
 
   const handleDecline = async () => {
     try {
       await patchQuery({ status: 'rejected' });
-      await loadQuery();
-      alert('Query declined');
-    } catch (e) { alert(e.message); }
+      redirectWithToast('Query declined', 'warning');
+    } catch (e) {
+      redirectWithToast(e.message || 'Failed to decline query', 'error');
+    }
   };
 
   return (

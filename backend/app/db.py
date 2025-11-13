@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 import os
 
 # Prefer environment variable but fall back to the provided connection string
-DATABASE_URL = os.environ.get('DATABASE_URL') or 'postgresql://postgres:animesh@localhost:5432/okil_ai_db'
+DATABASE_URL = os.environ.get('DATABASE_URL') or 'postgresql://postgres:ishan@localhost:5432/okil_ai_db'
 
 engine = create_engine(DATABASE_URL, echo=False)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

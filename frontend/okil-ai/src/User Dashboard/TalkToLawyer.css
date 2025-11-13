@@ -226,6 +226,11 @@
 
 .talk-to-lawyer-wrapper .lawyer-page-header {
   margin-bottom: 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
 }
 
 .talk-to-lawyer-wrapper .lawyer-page-title {
@@ -233,6 +238,45 @@
   font-weight: 600;
   color: #0d9488;
   margin: 0;
+}
+
+.talk-to-lawyer-wrapper .user-action-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.talk-to-lawyer-wrapper .user-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: white;
+  background: #0f9d8a;
+  box-shadow: 0 2px 6px rgba(15, 157, 138, 0.2);
+}
+
+.talk-to-lawyer-wrapper .user-action-btn.appointments {
+  background: #0f9d8a;
+}
+
+.talk-to-lawyer-wrapper .user-action-btn.queries {
+  background: #0f9d8a;
+}
+
+.talk-to-lawyer-wrapper .user-action-btn:hover {
+  background: #0a9e7a;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(15, 157, 138, 0.3);
+}
+
+.talk-to-lawyer-wrapper .user-action-btn svg {
+  flex-shrink: 0;
 }
 
 /* ====== Lawyers Grid ====== */
