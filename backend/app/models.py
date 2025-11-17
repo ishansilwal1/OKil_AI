@@ -18,6 +18,9 @@ class User(Base):
     expertise = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
+    #Email verification
+    is_verified = Column(Boolean, default=False)
+
     # Relationships
     login_tokens = relationship("LoginToken", back_populates="user", cascade="all, delete-orphan")
     reset_tokens = relationship("ResetToken", back_populates="user", cascade="all, delete-orphan")
@@ -50,6 +53,18 @@ class ResetToken(Base):
     
     # Relationship
     user = relationship("User", back_populates="reset_tokens")
+
+class EmailVerificationToken(Base):
+    __tablename__ = 'email_verification_tokens'
+
+    id = Column(Integer, primary_key=True, index=True)
+    token_hash = Column(String, unique=True, index=True, nullable=False)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    used = Column(Boolean, default=False)
+
+    user = relationship("User")
 
 
 class ChatSession(Base):

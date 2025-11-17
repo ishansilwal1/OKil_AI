@@ -75,6 +75,21 @@ def _run_lightweight_migrations():
             )
             if result2.fetchone() is None:
                 conn.execute(text("ALTER TABLE users ADD COLUMN expertise VARCHAR NULL"))
+            
+              # Ensure users.is_verified exists
+            result3 = conn.execute(
+                text(
+                    """
+                    SELECT 1 FROM information_schema.columns
+                    WHERE table_schema = current_schema()
+                      AND table_name = :t
+                      AND column_name = :c
+                    """
+                ),
+                {"t": "users", "c": "is_verified"},
+            )
+            if result3.fetchone() is None:
+                conn.execute(text("ALTER TABLE users ADD COLUMN is_verified BOOLEAN DEFAULT FALSE"))
     except Exception as e:
         # best-effort only; print to help diagnose in dev
         print("[init_db] Lightweight migration skipped due to:", repr(e))

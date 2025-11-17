@@ -40,12 +40,17 @@ def register_user(req: UserRegisterRequest, db: Session = Depends(get_db)):
 		username=req.username,
 		email=req.email,
 		password=utils.hash_password(req.password),
-		role='user'
+		role='user',
+		is_verified=False
 	)
 	db.add(user)
 	db.commit()
 	db.refresh(user)
-	return UserOut(name=user.name, username=user.username, email=user.email, role=user.role, barCouncilNumber=None, expertise=None)
+
+	# Send verification email
+	send_verification_email(user, db)
+
+	return UserOut(name=user.name, username=user.username, email=user.email, role=user.role, barCouncilNumber=None, expertise=None, is_verified=user.is_verified)
 
 
 @router.post('/register/lawyer', response_model=UserOut)
@@ -66,12 +71,40 @@ def register_lawyer(req: LawyerRegisterRequest, db: Session = Depends(get_db)):
 		password=utils.hash_password(req.password),
 		role='lawyer',
 		barCouncilNumber=req.barCouncilNumber,
-		expertise=getattr(req, 'expertise', None)
+		expertise=getattr(req, 'expertise', None),
+		is_verified=False
 	)
 	db.add(user)
 	db.commit()
 	db.refresh(user)
-	return UserOut(name=user.name, username=user.username, email=user.email, role=user.role, barCouncilNumber=user.barCouncilNumber, expertise=user.expertise)
+
+	# Send verification email
+	send_verification_email(user, db)
+
+	return UserOut(name=user.name, username=user.username, email=user.email, role=user.role, barCouncilNumber=user.barCouncilNumber, expertise=user.expertise, is_verified=user.is_verified)
+
+@router.get("/verify")
+def verify_email(token: str, db: Session = Depends(get_db)):
+    # Find the verification token in DB
+    token_hash = sha256(token.encode()).hexdigest()
+    v_token = db.query(models.EmailVerificationToken).filter(
+        models.EmailVerificationToken.token_hash == token_hash,
+        models.EmailVerificationToken.used == False
+    ).first()
+
+    if not v_token:
+        raise HTTPException(status_code=400, detail="Invalid or expired token")
+
+    # Mark user as verified
+    user = db.query(models.User).filter(models.User.id == v_token.user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    user.is_verified = True
+    v_token.used = True  # mark token as used
+    db.commit()
+
+    return {"message": "Email verified successfully!"}
 
 
 @router.post('/login')
@@ -79,9 +112,11 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
 	# allow login by email OR username
 	user = db.query(models.User).filter((models.User.email == req.email) | (models.User.username == req.email)).first()
 	if not user:
-		raise HTTPException(status_code=401, detail='Invalid credentials')
+		raise HTTPException(status_code=401, detail='Not a User. Sign up first.')
 	if not utils.verify_password(user.password, req.password):
 		raise HTTPException(status_code=401, detail='Invalid credentials')
+	if not user.is_verified:
+		raise HTTPException(status_code=403, detail='Email not verified. Please check your inbox.')
 
 	# Generate JWT token
 	access_token = utils.create_jwt_token(
@@ -210,6 +245,37 @@ def reset(req: ResetRequest, db: Session = Depends(get_db)):
 	db.commit()
 	
 	return {'message': 'Password reset successful'}
+
+def send_verification_email(user, db):
+    token = utils.generate_token()
+    token_hash = sha256(token.encode()).hexdigest()
+
+    # Clean expired verification tokens
+    current_time = datetime.now(timezone.utc)
+    expired = db.query(models.EmailVerificationToken).filter(
+        models.EmailVerificationToken.user_id == user.id,
+        models.EmailVerificationToken.expires_at < current_time
+    ).all()
+    for e in expired:
+        db.delete(e)
+
+    verification_token = models.EmailVerificationToken(
+        token_hash=token_hash,
+        user_id=user.id,
+        expires_at=utils.token_expiration(60),  # 60 minutes
+        used=False
+    )
+    db.add(verification_token)
+    db.commit()
+
+    frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:3000")
+    verify_link = f"{frontend_url}/verify-email?token={token}"
+
+    subject = "OKIL AI — Verify your email"
+    body = f"Click the link to verify your email:\n\n{verify_link}"
+    html = f"<p>Click to verify your email:</p><a href='{verify_link}'>Verify Email</a>"
+
+    email_utils.send_email(user.email, subject, body, html)
 
 
 def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_db)):

@@ -74,6 +74,48 @@ const Auth = () => {
   const [resetStatus, setResetStatus] = useState('idle'); // idle, sending, success, error
   const [resetMessage, setResetMessage] = useState('');
 
+  // Email Verification State
+  const [verifyStatus, setVerifyStatus] = useState('pending');
+  const [verifyMessage, setVerifyMessage] = useState('Verifying your email...');
+  const verifyHasRunRef = React.useRef(false);
+
+  useEffect(() => {
+    if (pathname === '/verify-email' && !verifyHasRunRef.current) {
+      verifyHasRunRef.current = true;
+      const token = searchParams.get('token');
+      if (!token) {
+        setVerifyStatus('error');
+        setVerifyMessage('Invalid verification link.');
+        toast.error('Invalid verification link.');
+        return;
+      }
+      (async () => {
+        try {
+          const res = await fetch(`${API_BASE}/auth/verify?token=${encodeURIComponent(token)}`);
+          const data = await res.json();
+          if (res.ok) {
+            setVerifyStatus('success');
+            setVerifyMessage('Email verified successfully! You can now log in.');
+            toast.success('Email verified! Please log in.');
+            setTimeout(() => navigate('/login'), 3000);
+          } else {
+            setVerifyStatus('error');
+            setVerifyMessage(data.detail || 'Verification failed.');
+            toast.error(data.detail || 'Verification failed.');
+          }
+        } catch (err) {
+          setVerifyStatus('error');
+          setVerifyMessage('Network error. Please try again.');
+          toast.error('Network error. Please try again.');
+        }
+      })();
+    }
+    // Reset the ref if leaving the page
+    return () => {
+      if (pathname !== '/verify-email') verifyHasRunRef.current = false;
+    };
+  }, [pathname, searchParams, navigate, API_BASE]);
+
   const validateEmail = (value) => {
     return /\S+@\S+\.\S+/.test(value);
   };
@@ -214,7 +256,7 @@ const Auth = () => {
         setSignupLoading(false);
         
         // Show success toast
-        toast.success('Registration successful! Please login to continue.', {
+        toast.success('User registration successful! Please check your email to verify your account before logging in.', {
           position: "top-right",
           autoClose: 3000,
           hideProgressBar: false,
@@ -275,7 +317,7 @@ const Auth = () => {
         setLawyerSignupLoading(false);
         
         // Show success toast
-        toast.success('Lawyer registration successful! Please login to continue.', {
+        toast.success('Lawyer registration successful! Please check your email to verify your account before logging in.', {
           position: "top-right",
           autoClose: 3000,
           hideProgressBar: false,
@@ -395,6 +437,40 @@ const Auth = () => {
       setResetMessage('Network error. Please try again.');
     }
   };
+
+  // Email Verification effect
+  useEffect(() => {
+    if (pathname === '/verify-email' && !verifyHasRunRef.current) {
+      verifyHasRunRef.current = true;
+      const token = searchParams.get('token');
+      if (!token) {
+        setVerifyStatus('error');
+        setVerifyMessage('Invalid verification link.');
+        toast.error('Invalid verification link.');
+        return;
+      }
+      (async () => {
+        try {
+          const res = await fetch(`${API_BASE}/auth/verify?token=${encodeURIComponent(token)}`);
+          const data = await res.json();
+          if (res.ok) {
+            setVerifyStatus('success');
+            setVerifyMessage('Email verified successfully! You can now log in.');
+            toast.success('Email verified! Please log in.');
+            setTimeout(() => navigate('/login'), 3000);
+          } else {
+            setVerifyStatus('error');
+            setVerifyMessage(data.detail || 'Verification failed.');
+            toast.error(data.detail || 'Verification failed.');
+          }
+        } catch (err) {
+          setVerifyStatus('error');
+          setVerifyMessage('Network error. Please try again.');
+          toast.error('Network error. Please try again.');
+        }
+      })();
+    }
+  }, [pathname, searchParams, navigate, API_BASE, verifyHasRunRef]);
 
   return (
     <div className="auth-wrapper">
@@ -1026,6 +1102,8 @@ const Auth = () => {
               </div>
             </>
           )}
+
+          {pathname === '/verify-email' && null}
         </div>
       </div>
     </div>

@@ -54,6 +54,7 @@ class UserOut(BaseModel):
 	role: Optional[str] = 'user'
 	barCouncilNumber: Optional[str] = None
 	expertise: Optional[str] = None
+	is_verified: bool
 	# Do not include password
 
 
@@ -64,6 +65,7 @@ class LawyerOut(BaseModel):
 	email: EmailStr
 	barCouncilNumber: Optional[str] = None
 	expertise: Optional[str] = None
+	is_verified: bool
 
 	class Config:
 		from_attributes = True
